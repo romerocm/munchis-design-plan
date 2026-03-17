@@ -74,12 +74,19 @@ sed -i '' "s|NEXT_PUBLIC_APP_URL=.*|NEXT_PUBLIC_APP_URL=http://localhost:${HOST_
   grep '^NEXT_PUBLIC_' "$LOCAL_ENV" || true
 } > "$COMPOSE_ENV"
 
+DEPLOY_URL="http://localhost:${HOST_PORT}"
+
+# Write URL to .context for agent discoverability
+CONTEXT_DIR="$PROJECT_DIR/.context"
+mkdir -p "$CONTEXT_DIR"
+echo "$DEPLOY_URL" > "$CONTEXT_DIR/url"
+
 echo ""
 echo "✔ Workspace ready"
 echo ""
 echo "  Name:      ${WORKSPACE_NAME}"
 echo "  Container: munchis-web-${WORKSPACE_NAME}"
-echo "  URL:       http://localhost:${HOST_PORT}"
+echo "  URL:       ${DEPLOY_URL}"
 echo ""
 echo "  Production: docker compose up -d --build"
 echo "  Dev:        docker compose -f docker-compose.dev.yml up -d --build"
