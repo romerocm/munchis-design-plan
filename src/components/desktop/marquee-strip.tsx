@@ -91,11 +91,11 @@ function MarqueeContent() {
       {items.map((item, i) => (
         <div key={i} className="flex items-center gap-2.5 shrink-0">
           <MarqueeIcon type={item.icon} />
-          <span className="text-[13px] font-medium italic text-white/70 whitespace-nowrap">
+          <span className="text-[15px] font-medium italic text-white/70 whitespace-nowrap">
             {item.label}
           </span>
           {i < items.length - 1 && (
-            <span className="text-[13px] shrink-0 ml-4" style={{ color: LAVENDER }}>·</span>
+            <span className="text-[15px] shrink-0 ml-4" style={{ color: LAVENDER }}>·</span>
           )}
         </div>
       ))}
@@ -117,9 +117,9 @@ export function MarqueeStrip() {
   const duration = contentWidth > 0 ? contentWidth / 50 : 30;
 
   return (
-    <div className="w-screen -mx-12 bg-forest overflow-hidden">
+    <div className="w-full bg-forest overflow-hidden">
       <div
-        className="flex py-3.5"
+        className="flex py-5"
         style={{
           animation: contentWidth > 0 ? `marquee-scroll ${duration}s linear infinite` : "none",
           willChange: "transform",

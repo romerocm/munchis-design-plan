@@ -88,17 +88,28 @@ export function OrderSheet({ drop, remaining, onClose, onOrderComplete }: OrderS
   const [closing, setClosing] = useState(false);
   const sheetRef = useRef<HTMLDivElement>(null);
   const dragStartY = useRef<number | null>(null);
+
   const currentDragY = useRef(0);
 
   const handleClose = useCallback(() => {
     if (!sheetRef.current) { onClose(); return; }
     const sheet = sheetRef.current;
-    // Animate from current position to off-screen
-    sheet.style.transition = "transform 250ms ease-out";
-    sheet.style.transform = "translateY(100%)";
+    // Animate out: slide down on mobile, scale+fade on desktop
+    sheet.style.transition = "transform 250ms ease-out, opacity 200ms ease-out";
+    sheet.style.transform = window.innerWidth >= 1024 ? "scale(0.95)" : "translateY(100%)";
+    sheet.style.opacity = window.innerWidth >= 1024 ? "0" : "1";
     setClosing(true);
     setTimeout(onClose, 250);
   }, [onClose]);
+
+  // Close on Escape key
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") handleClose();
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [handleClose]);
 
   function onTouchStart(e: React.TouchEvent) {
     dragStartY.current = e.touches[0].clientY;
@@ -182,10 +193,10 @@ export function OrderSheet({ drop, remaining, onClose, onOrderComplete }: OrderS
   // completely outside the app's DOM tree and unaffected by body transforms.
   return createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-end justify-center"
+      className="fixed inset-0 z-50 flex items-end lg:items-center justify-center"
       style={{ touchAction: "none", overscrollBehavior: "none" }}
     >
-      {/* Backdrop: solid color layer that fully covers the viewport */}
+      {/* Backdrop */}
       <div
         className={`fixed inset-0 bg-black/50 transition-opacity duration-250 ${closing ? "opacity-0" : ""}`}
         style={{ touchAction: "none" }}
@@ -198,11 +209,21 @@ export function OrderSheet({ drop, remaining, onClose, onOrderComplete }: OrderS
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
         style={{ touchAction: "pan-y", overscrollBehavior: "contain", WebkitOverflowScrolling: "touch" }}
-        className="relative w-full max-w-lg max-h-[80dvh] overflow-y-auto bg-cream rounded-t-3xl p-4 pb-10 animate-slide-up shadow-[0_-8px_30px_rgba(0,0,0,0.12)]"
+        className="relative w-full max-w-lg lg:max-w-xl max-h-[80dvh] overflow-y-auto bg-cream rounded-t-3xl lg:rounded-3xl p-4 pb-10 lg:p-10 lg:pb-10 animate-slide-up lg:animate-scale-in shadow-[0_-8px_30px_rgba(0,0,0,0.12)] lg:shadow-2xl"
       >
-        <div className="flex justify-center mb-4 cursor-grab">
+        {/* Drag handle — mobile only */}
+        <div className="flex justify-center mb-4 cursor-grab lg:hidden">
           <div className="w-9 h-1 rounded-full bg-forest/10" />
         </div>
+        {/* Close button — desktop only */}
+        <button
+          onClick={handleClose}
+          className="hidden lg:flex absolute top-6 right-6 w-6 h-6 items-center justify-center text-forest/25 hover:text-forest/50 transition-colors"
+        >
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M4.5 4.5l7 7M11.5 4.5l-7 7" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" />
+          </svg>
+        </button>
 
         {step === "quantity" && (
           <>

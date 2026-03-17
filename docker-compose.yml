@@ -1,14 +1,17 @@
-name: munchis
+name: munchis-${WORKSPACE_NAME:-albany}
 
 services:
   web:
-    image: munchis-web
+    image: munchis-web-${WORKSPACE_NAME:-albany}
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: munchis-web
+      args:
+        NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL}
+        NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY}
+    container_name: munchis-web-${WORKSPACE_NAME:-albany}
     ports:
-      - "3000:3000"
+      - "${HOST_PORT:-3000}:3000"
     env_file:
       - .env.local
     restart: unless-stopped

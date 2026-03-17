@@ -17,6 +17,8 @@ interface Props {
   remaining: number;
 }
 
+const cx = "max-w-[1280px] mx-auto w-full px-12";
+
 export function DesktopDropPage({ drop, remaining }: Props) {
   const [showOrder, setShowOrder] = useState(false);
 
@@ -27,9 +29,9 @@ export function DesktopDropPage({ drop, remaining }: Props) {
   const capacityPercent = drop && drop.capacity > 0 ? Math.round((orderedCount / drop.capacity) * 100) : 0;
 
   return (
-    <div className="min-h-screen bg-cream flex flex-col px-12 pb-12 gap-4">
+    <div className="min-h-screen bg-cream flex flex-col gap-4 pb-12">
       {/* Nav */}
-      <nav className="flex items-center justify-between py-5">
+      <nav className={`flex items-center justify-between py-5 ${cx}`}>
         <Image
           src="/images/logo-wordmark.svg"
           alt="munchis"
@@ -54,49 +56,51 @@ export function DesktopDropPage({ drop, remaining }: Props) {
 
       {/* Hero Split */}
       {isLive && drop && (
-        <div className="flex rounded-[28px] overflow-hidden min-h-[520px]">
-          {/* Left content — Paper: bg #FFFFFF, padding 48px, gap 16px */}
-          <div className="flex-1 flex flex-col justify-center p-12 gap-4 bg-white">
-            <p className="text-xs font-semibold text-amber uppercase tracking-wider">
-              THIS WEEK&apos;S DROP
-            </p>
-            <h1 className="font-display font-black text-5xl text-forest leading-[1.05]">
-              {drop.flavor_name}
-            </h1>
-            <p className="text-[15px] text-forest/45 leading-relaxed max-w-[400px]">
-              {drop.flavor_description}
-            </p>
-            <div className="flex items-baseline gap-2">
-              <span className="font-display font-black text-3xl text-forest">{priceFormatted}</span>
-              <span className="text-sm text-forest/35">each</span>
-            </div>
-            <div className="flex items-center gap-4 pt-2">
-              <button
-                onClick={() => setShowOrder(true)}
-                className="px-7 py-3.5 rounded-2xl bg-forest text-white font-semibold text-[15px] flex items-center gap-2 btn-press"
-              >
-                Order Now
-                <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
-                  <path d="M3 8h10M9 4l4 4-4 4" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              </button>
-              <div className="flex flex-col gap-0.5">
-                <span className="text-[10px] font-semibold text-forest/30 uppercase tracking-wider">CLOSES THURSDAY</span>
-                <CountdownTimer targetDate={drop.orders_close_at} label="" compact />
+        <div className={cx}>
+          <div className="flex rounded-[28px] overflow-hidden min-h-[520px]">
+            {/* Left content */}
+            <div className="flex-1 flex flex-col justify-center p-12 gap-4 bg-white">
+              <p className="text-xs font-semibold text-amber uppercase tracking-wider">
+                THIS WEEK&apos;S DROP
+              </p>
+              <h1 className="font-display font-black text-5xl text-forest leading-[1.05]">
+                {drop.flavor_name}
+              </h1>
+              <p className="text-[15px] text-forest/45 leading-relaxed max-w-[400px]">
+                {drop.flavor_description}
+              </p>
+              <div className="flex items-baseline gap-2">
+                <span className="font-display font-black text-3xl text-forest">{priceFormatted}</span>
+                <span className="text-sm text-forest/35">each</span>
+              </div>
+              <div className="flex items-center gap-4 pt-2">
+                <button
+                  onClick={() => setShowOrder(true)}
+                  className="px-7 py-3.5 rounded-2xl bg-forest text-white font-semibold text-[15px] flex items-center gap-2 btn-press"
+                >
+                  Order Now
+                  <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+                    <path d="M3 8h10M9 4l4 4-4 4" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </button>
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-[10px] font-semibold text-forest/30 uppercase tracking-wider">CLOSES THURSDAY</span>
+                  <CountdownTimer targetDate={drop.orders_close_at} label="" compact />
+                </div>
               </div>
             </div>
-          </div>
-          {/* Right image — Paper: bg #1B3D2F0A */}
-          <div className="flex-1 relative bg-forest/[0.04]">
-            <img
-              src={drop.hero_image_url || "/images/hero-cookies.jpg"}
-              alt={drop.flavor_name}
-              className="absolute inset-0 w-full h-full object-cover"
-            />
-            <div className="absolute top-4 right-4 flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-white/90">
-              <span className="text-[11px] font-semibold text-forest">
-                {drop.pickup_location} · Sunday {drop.pickup_time_start?.slice(0, 5)}-{drop.pickup_time_end?.slice(0, 5)}
-              </span>
+            {/* Right image */}
+            <div className="flex-1 relative bg-forest/[0.04]">
+              <img
+                src={drop.hero_image_url || "/images/hero-cookies.jpg"}
+                alt={drop.flavor_name}
+                className="absolute inset-0 w-full h-full object-cover"
+              />
+              <div className="absolute top-4 right-4 flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-white/90">
+                <span className="text-[11px] font-semibold text-forest">
+                  {drop.pickup_location} · Sunday {drop.pickup_time_start?.slice(0, 5)}-{drop.pickup_time_end?.slice(0, 5)}
+                </span>
+              </div>
             </div>
           </div>
         </div>
@@ -104,47 +108,51 @@ export function DesktopDropPage({ drop, remaining }: Props) {
 
       {/* Pre-Drop or Post-Drop hero */}
       {!isLive && (
-        <div className="flex rounded-[28px] overflow-hidden min-h-[400px] bg-forest/[0.03] items-center justify-center">
-          <div className="text-center max-w-lg px-8">
-            {!drop || drop.status === "draft" ? (
-              <>
-                <p className="text-xs font-semibold text-forest/30 uppercase tracking-wider mb-3">NEXT DROP</p>
-                <h1 className="font-display font-black text-4xl text-forest mb-4">
-                  Handmade treats, baked fresh every Sunday
-                </h1>
-                {drop && (
-                  <CountdownTimer targetDate={drop.orders_open_at} label="OPENS IN" />
-                )}
-                <div className="mt-6 max-w-sm mx-auto">
-                  <NotifyForm dropId={drop?.id} subtitle="Get a WhatsApp message when the drop goes live" />
-                </div>
-              </>
-            ) : (
-              <>
-                <div className="inline-block px-3 py-1 rounded-full bg-forest/8 mb-4">
-                  <span className="text-xs font-semibold text-forest/60">{orderedCount} orders this drop</span>
-                </div>
-                <h1 className="font-display font-black text-4xl text-forest mb-4">Orders are closed!</h1>
-                <p className="text-sm text-forest/50 leading-relaxed mb-6">
-                  We&apos;re buying fresh ingredients Friday and baking everything by hand on Saturday.
-                </p>
-                <div className="max-w-sm mx-auto">
-                  <NotifyForm dropId={drop.id} subtitle={`Be first in line when Drop ${formatDropNumber(drop.number + 1)} opens`} />
-                </div>
-              </>
-            )}
+        <div className={cx}>
+          <div className="flex rounded-[28px] overflow-hidden min-h-[400px] bg-forest/[0.03] items-center justify-center">
+            <div className="text-center max-w-lg px-8">
+              {!drop || drop.status === "draft" ? (
+                <>
+                  <p className="text-xs font-semibold text-forest/30 uppercase tracking-wider mb-3">NEXT DROP</p>
+                  <h1 className="font-display font-black text-4xl text-forest mb-4">
+                    Handmade treats, baked fresh every Sunday
+                  </h1>
+                  {drop && (
+                    <CountdownTimer targetDate={drop.orders_open_at} label="OPENS IN" />
+                  )}
+                  <div className="mt-6 max-w-sm mx-auto">
+                    <NotifyForm dropId={drop?.id} subtitle="Get a WhatsApp message when the drop goes live" />
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="inline-block px-3 py-1 rounded-full bg-forest/8 mb-4">
+                    <span className="text-xs font-semibold text-forest/60">{orderedCount} orders this drop</span>
+                  </div>
+                  <h1 className="font-display font-black text-4xl text-forest mb-4">Orders are closed!</h1>
+                  <p className="text-sm text-forest/50 leading-relaxed mb-6">
+                    We&apos;re buying fresh ingredients Friday and baking everything by hand on Saturday.
+                  </p>
+                  <div className="max-w-sm mx-auto">
+                    <NotifyForm dropId={drop.id} subtitle={`Be first in line when Drop ${formatDropNumber(drop.number + 1)} opens`} />
+                  </div>
+                </>
+              )}
+            </div>
           </div>
         </div>
       )}
 
-      {/* Marquee — between hero and how-it-works per Paper layout */}
+      {/* Marquee — full width */}
       <MarqueeStrip />
 
       {/* How It Works */}
-      <HowItWorks />
+      <div className={cx}>
+        <HowItWorks />
+      </div>
 
       {/* Bottom Cards */}
-      <div className="flex gap-4">
+      <div className={`flex gap-4 ${cx}`}>
         {/* Coming Next Week */}
         <div className="flex-1 p-8 rounded-[20px] bg-[#E1CDE4] flex flex-col items-center justify-center text-center gap-3">
           <p className="text-[11px] font-semibold text-forest/35 uppercase tracking-wider">Coming next week</p>
@@ -170,8 +178,10 @@ export function DesktopDropPage({ drop, remaining }: Props) {
         </div>
       </div>
 
-      {/* Footer — Paper: marginTop 16px (gap-4 handles base, this adds extra) */}
-      <Footer />
+      {/* Footer */}
+      <div className={cx}>
+        <Footer />
+      </div>
 
       {/* Order Sheet (modal on desktop) */}
       {showOrder && drop && isLive && (

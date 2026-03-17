@@ -43,6 +43,68 @@ export function DropPageSkeleton() {
   );
 }
 
+export function DesktopDropPageSkeleton() {
+  return (
+    <main className="min-h-screen bg-cream flex flex-col gap-4 pb-12 animate-pulse">
+      {/* Nav */}
+      <nav className="max-w-[1280px] mx-auto w-full px-12 flex items-center justify-between py-5">
+        <div className="h-8 w-32 bg-forest/8 rounded-lg" />
+        <div className="h-7 w-24 bg-forest/5 rounded-full" />
+      </nav>
+
+      {/* Hero split */}
+      <div className="max-w-[1280px] mx-auto w-full px-12">
+        <div className="flex rounded-[28px] overflow-hidden min-h-[520px]">
+          <div className="flex-1 flex flex-col justify-center p-12 gap-5 bg-white">
+            <div className="h-3 w-32 bg-forest/5 rounded" />
+            <div className="h-12 w-3/4 bg-forest/8 rounded-xl" />
+            <div className="space-y-2">
+              <div className="h-4 w-full max-w-[400px] bg-forest/5 rounded" />
+              <div className="h-4 w-4/5 max-w-[320px] bg-forest/5 rounded" />
+            </div>
+            <div className="h-8 w-24 bg-forest/8 rounded-lg" />
+            <div className="flex items-center gap-4 pt-2">
+              <div className="h-12 w-36 bg-forest/8 rounded-2xl" />
+              <div className="space-y-1.5">
+                <div className="h-2.5 w-24 bg-forest/5 rounded" />
+                <div className="h-4 w-20 bg-forest/5 rounded" />
+              </div>
+            </div>
+          </div>
+          <div className="flex-1 bg-forest/5" />
+        </div>
+      </div>
+
+      {/* Marquee */}
+      <div className="w-full h-12 bg-forest/8" />
+
+      {/* How it works */}
+      <div className="max-w-[1280px] mx-auto w-full px-12">
+        <div className="flex gap-8 justify-center py-8">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="flex flex-col items-center gap-3 w-48">
+              <div className="w-14 h-14 rounded-full bg-forest/5" />
+              <div className="h-5 w-32 bg-forest/8 rounded" />
+              <div className="h-3 w-40 bg-forest/5 rounded" />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Bottom cards */}
+      <div className="max-w-[1280px] mx-auto w-full px-12 flex gap-4">
+        <div className="flex-1 h-56 rounded-[20px] bg-forest/5" />
+        <div className="flex-1 h-56 rounded-[20px] bg-forest/5" />
+      </div>
+
+      {/* Footer */}
+      <div className="max-w-[1280px] mx-auto w-full px-12">
+        <div className="h-48 rounded-2xl bg-forest/8" />
+      </div>
+    </main>
+  );
+}
+
 export function FlavorScreenSkeleton() {
   return (
     <main className="min-h-screen w-full max-w-lg mx-auto bg-cream animate-pulse">
