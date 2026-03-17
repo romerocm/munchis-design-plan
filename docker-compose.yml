@@ -1,0 +1,14 @@
+name: munchis
+
+services:
+  web:
+    image: munchis-web
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: munchis-web
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env.local
+    restart: unless-stopped
