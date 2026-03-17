@@ -10,12 +10,13 @@ interface CountdownTimerProps {
 
 function getTimeLeft(target: string) {
   const diff = new Date(target).getTime() - Date.now();
-  if (diff <= 0) return { days: 0, hours: 0, minutes: 0, expired: true };
+  if (diff <= 0) return { days: 0, hours: 0, minutes: 0, seconds: 0, expired: true };
 
   return {
     days: Math.floor(diff / (1000 * 60 * 60 * 24)),
     hours: Math.floor((diff / (1000 * 60 * 60)) % 24),
     minutes: Math.floor((diff / (1000 * 60)) % 60),
+    seconds: Math.floor((diff / 1000) % 60),
     expired: false,
   };
 }
@@ -26,7 +27,7 @@ export function CountdownTimer({ targetDate, label, compact }: CountdownTimerPro
   useEffect(() => {
     const interval = setInterval(() => {
       setTime(getTimeLeft(targetDate));
-    }, 60_000); // update every minute
+    }, 1_000); // update every second
     return () => clearInterval(interval);
   }, [targetDate]);
 
@@ -39,7 +40,7 @@ export function CountdownTimer({ targetDate, label, compact }: CountdownTimerPro
   if (compact) {
     return (
       <span className="text-sm font-semibold text-forest/60">
-        {time.days}d {time.hours}h {time.minutes}m left
+        {time.days}d {time.hours}h {time.minutes}m {time.seconds}s left
       </span>
     );
   }
@@ -86,6 +87,19 @@ export function CountdownTimer({ targetDate, label, compact }: CountdownTimerPro
           </div>
           <span className="text-[10px] font-semibold text-forest/35 uppercase tracking-wider mt-1">
             Min
+          </span>
+        </div>
+        <span className="font-display font-black text-lg text-forest/25 -mt-4">
+          :
+        </span>
+        <div className="flex flex-col items-center">
+          <div className="w-12 h-12 rounded-xl bg-white flex items-center justify-center">
+            <span className="font-display font-black text-xl text-forest/50">
+              {time.seconds}
+            </span>
+          </div>
+          <span className="text-[10px] font-semibold text-forest/35 uppercase tracking-wider mt-1">
+            Sec
           </span>
         </div>
       </div>

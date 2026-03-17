@@ -22,8 +22,16 @@
 - [x] Micro-interactions (transitions, button press, animations)
 - [x] Skeleton loading
 - [x] Order sheet drag-to-dismiss
-- [ ] Full Paper audit — align all artboards to code
+- [x] Full Paper audit — align all artboards to code
 - [ ] Deploy to production (Vercel)
+
+## Paper Design — New Artboards Needed
+- [ ] Desktop v2 — Pre-Drop (countdown + marquee + how-it-works + notify)
+- [ ] Desktop v2 — Closed/Baking (no marquee/how-it-works, Coming Next Week as primary CTA)
+- [ ] Desktop v2 — Completed (recap, next drop teaser)
+- [ ] Desktop v2 — Order Modal (centered overlay on live drop)
+- [ ] Desktop v2 — Pay Now + Confirmed (desktop versions of mobile screens)
+- [ ] Full About page design (with Instagram/YouTube embeds)
 
 ## Post-Launch (Drop #2+)
 - [ ] /order/[id] status page (if WhatsApp isn't enough)
@@ -37,3 +45,5 @@
 - [ ] Analytics event specification
 - [ ] Inline Stripe/Wompi checkout (remove 2-hour payment window)
 - [ ] Notify-me delivery pipeline (WhatsApp)
+- [ ] Full About page with Instagram Reels + YouTube reviews
+- [ ] Error screens (stock changed, payment expired)

@@ -12,8 +12,11 @@ export function DropPageSkeleton() {
       {/* Hero image */}
       <div className="mx-4 rounded-2xl bg-forest/5 aspect-[342/300]" />
 
+      {/* Amber brand banner */}
+      <div className="mx-4 mt-2 h-10 bg-forest/5 rounded-xl" />
+
       {/* Text lines */}
-      <div className="px-4 pt-5 flex-1 space-y-3">
+      <div className="px-4 pt-4 flex-1 space-y-3">
         <div className="h-3 w-40 bg-forest/5 rounded" />
         <div className="h-8 w-full bg-forest/8 rounded-lg" />
         <div className="h-8 w-3/4 bg-forest/8 rounded-lg" />
@@ -31,6 +34,7 @@ export function DropPageSkeleton() {
             <div className="w-14 h-14 rounded-xl bg-white" />
             <div className="w-14 h-14 rounded-xl bg-white" />
             <div className="w-14 h-14 rounded-xl bg-white" />
+            <div className="w-12 h-12 rounded-xl bg-white" />
           </div>
         </div>
       </div>
