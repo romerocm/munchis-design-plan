@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { CountdownTimer } from "./shared/countdown-timer";
 import { NotifyForm } from "./shared/notify-form";
 import { OrderSheet } from "./order-sheet";
@@ -65,9 +66,13 @@ export function DropPage({ drop, remaining }: DropPageProps) {
     return (
       <main className="min-h-screen w-full max-w-lg mx-auto bg-cream flex flex-col">
         <nav className="flex items-center justify-between px-4 py-4">
-          <h1 className="font-display font-black text-2xl text-forest">
-            munchis
-          </h1>
+          <Image
+            src="/images/logo-wordmark.svg"
+            alt="munchis"
+            width={120}
+            height={34}
+            className="h-7 w-auto"
+          />
           <div className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-forest/10">
             <div className="w-1.5 h-1.5 rounded-full bg-amber" />
             <span className="text-xs font-semibold text-forest/50">
@@ -141,9 +146,13 @@ export function DropPage({ drop, remaining }: DropPageProps) {
     return (
       <main className="min-h-screen w-full max-w-lg mx-auto bg-cream flex flex-col">
         <nav className="flex items-center justify-between px-4 py-4">
-          <h1 className="font-display font-black text-2xl text-forest">
-            munchis
-          </h1>
+          <Image
+            src="/images/logo-wordmark.svg"
+            alt="munchis"
+            width={120}
+            height={34}
+            className="h-7 w-auto"
+          />
           <div className="px-3 py-1.5 rounded-full border border-forest/10">
             <span className="text-xs font-semibold text-forest/50">
               ORDERS CLOSED
@@ -327,9 +336,13 @@ export function DropPage({ drop, remaining }: DropPageProps) {
     return (
       <main key="hero" className={`min-h-screen w-full max-w-lg mx-auto bg-cream flex flex-col ${screenAnim}`}>
         <nav className="flex items-center justify-between px-4 py-4">
-          <h1 className="font-display font-black text-2xl text-forest">
-            munchis
-          </h1>
+          <Image
+            src="/images/logo-wordmark.svg"
+            alt="munchis"
+            width={120}
+            height={34}
+            className="h-7 w-auto"
+          />
           <div className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-forest/10">
             <div className="w-1.5 h-1.5 rounded-full bg-green-accent animate-pulse" />
             <span className="text-xs font-semibold text-forest">
@@ -347,17 +360,30 @@ export function DropPage({ drop, remaining }: DropPageProps) {
           <div className="absolute bottom-3 left-3 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-forest/85 backdrop-blur-sm">
             <svg width="12" height="12" viewBox="0 0 14 14" fill="none">
               <path
-                d="M7 1l1.73 3.51L12.5 5l-3 2.93.71 4.14L7 10.27 3.79 12.07l.71-4.14-3-2.93 3.77-.49L7 1z"
-                fill="#C8872E"
+                d="M7 0C4.24 0 2 2.24 2 5c0 3.75 5 9 5 9s5-5.25 5-9c0-2.76-2.24-5-5-5zm0 6.5A1.5 1.5 0 117 3.5a1.5 1.5 0 010 3z"
+                fill="white"
               />
             </svg>
             <span className="text-[11px] font-semibold text-white tracking-wide">
-              Baked from scratch · One flavor per drop
+              {drop.pickup_location} · Sunday {drop.pickup_time_start?.slice(0, 5)}
             </span>
           </div>
         </div>
 
-        <div className="px-4 pt-5 flex-1">
+        {/* Amber brand banner — mobile marquee equivalent */}
+        <div className="mx-4 mt-2 flex items-center gap-2 px-4 py-2.5 rounded-xl bg-amber/10">
+          <svg width="12" height="12" viewBox="0 0 14 14" fill="none" className="shrink-0">
+            <path
+              d="M7 1l1.73 3.51L12.5 5l-3 2.93.71 4.14L7 10.27 3.79 12.07l.71-4.14-3-2.93 3.77-.49L7 1z"
+              fill="#C8872E"
+            />
+          </svg>
+          <span className="text-xs font-semibold text-forest/60">
+            Baked from scratch · Never mass-produced
+          </span>
+        </div>
+
+        <div className="px-4 pt-4 flex-1">
           <p className="text-xs font-medium text-forest/40 uppercase tracking-wider mb-2">
             DROP {formatDropNumber(drop.number)} ·{" "}
             {drop.flavor_name.toUpperCase()}

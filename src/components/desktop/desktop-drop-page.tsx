@@ -40,6 +40,16 @@ export function DesktopDropPage({ drop, remaining }: Props) {
           className="h-8 w-auto"
         />
         <div className="flex items-center gap-4">
+          <a
+            href="#meet-heidi"
+            className="text-sm text-forest/50 hover:text-forest transition"
+            onClick={(e) => {
+              e.preventDefault();
+              document.getElementById("meet-heidi")?.scrollIntoView({ behavior: "smooth" });
+            }}
+          >
+            About
+          </a>
           {isLive && (
             <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-forest/10">
               <div className="w-1.5 h-1.5 rounded-full bg-green-accent animate-pulse" />
@@ -143,13 +153,15 @@ export function DesktopDropPage({ drop, remaining }: Props) {
         </div>
       )}
 
-      {/* Marquee — full width */}
-      <MarqueeStrip />
-
-      {/* How It Works */}
-      <div className={cx}>
-        <HowItWorks />
-      </div>
+      {/* Marquee + How It Works — only show when ordering is possible */}
+      {(isLive || (!drop || drop.status === "draft")) && (
+        <>
+          <MarqueeStrip />
+          <div className={cx}>
+            <HowItWorks />
+          </div>
+        </>
+      )}
 
       {/* Bottom Cards */}
       <div className={`flex gap-4 ${cx}`}>
@@ -166,7 +178,7 @@ export function DesktopDropPage({ drop, remaining }: Props) {
         </div>
 
         {/* Meet Heidi */}
-        <div className="flex-1 p-8 rounded-[20px] bg-mint flex flex-col items-center justify-center text-center gap-3">
+        <div id="meet-heidi" className="flex-1 p-8 rounded-[20px] bg-mint flex flex-col items-center justify-center text-center gap-3">
           <div className="w-12 h-12 rounded-full overflow-hidden">
             <Image src="/images/munchis-icon.svg" alt="munchis" width={48} height={48} />
           </div>
