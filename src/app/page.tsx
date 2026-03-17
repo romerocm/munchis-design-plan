@@ -3,7 +3,7 @@ import { createServerClient } from "@/lib/supabase/server";
 import { findActiveDrop } from "@/lib/drops/find-active";
 import { DropPage } from "@/components/drop-page";
 import { DesktopDropPage } from "@/components/desktop/desktop-drop-page";
-import { DropPageSkeleton } from "@/components/shared/skeleton";
+import { DropPageSkeleton, DesktopDropPageSkeleton } from "@/components/shared/skeleton";
 
 export const dynamic = "force-dynamic";
 
@@ -53,7 +53,12 @@ async function DropContent() {
 
 export default function Home() {
   return (
-    <Suspense fallback={<DropPageSkeleton />}>
+    <Suspense fallback={
+      <>
+        <div className="lg:hidden"><DropPageSkeleton /></div>
+        <div className="hidden lg:block"><DesktopDropPageSkeleton /></div>
+      </>
+    }>
       <DropContent />
     </Suspense>
   );

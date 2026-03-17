@@ -12,11 +12,12 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Next.js pre-renders pages at build time, which triggers Supabase client
-# initialization. Provide placeholder values so the build completes.
-# Real values are injected at runtime via env_file.
-ENV NEXT_PUBLIC_SUPABASE_URL=http://placeholder
-ENV NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=placeholder
+# NEXT_PUBLIC_* vars are inlined into JS bundles at build time by Next.js,
+# so they must be provided as build args — not runtime env vars.
+ARG NEXT_PUBLIC_SUPABASE_URL
+ARG NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+ENV NEXT_PUBLIC_SUPABASE_URL=$NEXT_PUBLIC_SUPABASE_URL
+ENV NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=$NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
 
 RUN npm run build
 
