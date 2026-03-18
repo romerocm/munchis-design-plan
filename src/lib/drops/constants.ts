@@ -1,15 +1,16 @@
 import type { DropStatus } from "@/types/database";
 
 /** All valid drop statuses, in lifecycle order */
-export const DROP_STATUSES = ["draft", "live", "closed", "baking", "completed"] as const;
+export const DROP_STATUSES = ["draft", "live", "closed", "baking", "ready", "completed"] as const;
 
 /** Valid state transitions for drops */
 export const DROP_TRANSITIONS: Record<DropStatus, DropStatus[]> = {
   draft: ["live"],
   live: ["closed"],
-  closed: ["baking", "live"], // can re-open or proceed
-  baking: ["completed"],
-  completed: [], // terminal
+  closed: ["baking", "live"],       // proceed or reopen
+  baking: ["ready", "closed"],      // mark ready or roll back
+  ready: ["completed", "baking"],   // complete or roll back
+  completed: ["ready"],             // undo complete
 };
 
 /** Human-readable labels for drop statuses */
@@ -18,6 +19,7 @@ export const DROP_STATUS_LABELS: Record<DropStatus, string> = {
   live: "Orders are open",
   closed: "Orders closed",
   baking: "Baking in progress",
+  ready: "Ready for pickup",
   completed: "Drop complete",
 };
 

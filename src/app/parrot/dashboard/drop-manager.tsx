@@ -4,7 +4,9 @@ import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { getToken } from "@/lib/auth/get-token";
 import { formatDropNumber } from "@/lib/drops/constants";
-import { formatCents } from "@/lib/format";
+import { formatCents, formatDay, utcToCST, cstToUTC } from "@/lib/format";
+import { DateWheelPicker } from "@/components/shared/date-wheel-picker";
+import { TimeWheelPicker } from "@/components/shared/time-wheel-picker";
 import type { Drop } from "@/types/database";
 
 interface Props {
@@ -278,6 +280,37 @@ export function DropManager({ drop: initialDrop }: Props) {
         </div>
 
         <div className="p-3 space-y-3">
+          {/* ── Ordering window ── */}
+          <div className="text-[10px] font-semibold text-forest/30 uppercase tracking-wider pt-1">
+            Ordering window
+          </div>
+
+          {/* Orders Open */}
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-forest/60">Orders open</span>
+            <button
+              onClick={() => setEditing("orders_open_at")}
+              className="text-sm font-semibold text-forest bg-white px-3 py-1.5 rounded-lg ring-1 ring-forest/10 hover:ring-forest/20 transition text-right"
+            >
+              {drop.orders_open_at
+                ? (() => { const { date, time } = utcToCST(drop.orders_open_at); const [,mo,da] = date.split("-"); const h = parseInt(time.split(":")[0]); const m = time.split(":")[1]; const ampm = h >= 12 ? "PM" : "AM"; const h12 = h % 12 || 12; const months = ["","Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]; return `${months[+mo]} ${+da}, ${h12}:${m} ${ampm}`; })()
+                : "Set date"}
+            </button>
+          </div>
+
+          {/* Orders Close */}
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-forest/60">Orders close</span>
+            <button
+              onClick={() => setEditing("orders_close_at")}
+              className="text-sm font-semibold text-forest bg-white px-3 py-1.5 rounded-lg ring-1 ring-forest/10 hover:ring-forest/20 transition text-right"
+            >
+              {drop.orders_close_at
+                ? (() => { const { date, time } = utcToCST(drop.orders_close_at); const [,mo,da] = date.split("-"); const h = parseInt(time.split(":")[0]); const m = time.split(":")[1]; const ampm = h >= 12 ? "PM" : "AM"; const h12 = h % 12 || 12; const months = ["","Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]; return `${months[+mo]} ${+da}, ${h12}:${m} ${ampm}`; })()
+                : "Set date"}
+            </button>
+          </div>
+
           {/* Capacity */}
           <div className="flex items-center justify-between">
             <span className="text-sm text-forest/60">Capacity</span>
@@ -300,6 +333,44 @@ export function DropManager({ drop: initialDrop }: Props) {
             )}
           </div>
 
+          {/* ── Pickup details ── */}
+          <div className="text-[10px] font-semibold text-forest/30 uppercase tracking-wider pt-3">
+            Pickup details
+          </div>
+
+          {/* Pickup Date */}
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-forest/60">Pickup date</span>
+            <button
+              onClick={() => setEditing("pickup_date")}
+              className="text-sm font-semibold text-forest bg-white px-3 py-1.5 rounded-lg ring-1 ring-forest/10 hover:ring-forest/20 transition"
+            >
+              {drop.pickup_date
+                ? `${formatDay(drop.pickup_date)}, ${new Date(drop.pickup_date + "T12:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" })}`
+                : "Set date"}
+            </button>
+          </div>
+
+          {/* Pickup Time */}
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-forest/60">Pickup time</span>
+            <div className="flex items-center gap-1.5">
+              <button
+                onClick={() => setEditing("pickup_time_start")}
+                className="text-sm font-semibold text-forest bg-white px-3 py-1.5 rounded-lg ring-1 ring-forest/10 hover:ring-forest/20 transition"
+              >
+                {drop.pickup_time_start?.slice(0, 5) || "Start"}
+              </button>
+              <span className="text-forest/30 text-sm">–</span>
+              <button
+                onClick={() => setEditing("pickup_time_end")}
+                className="text-sm font-semibold text-forest bg-white px-3 py-1.5 rounded-lg ring-1 ring-forest/10 hover:ring-forest/20 transition"
+              >
+                {drop.pickup_time_end?.slice(0, 5) || "End"}
+              </button>
+            </div>
+          </div>
+
           {/* Pickup Location */}
           <div className="flex items-center justify-between">
             <span className="text-sm text-forest/60">Pickup at</span>
@@ -320,59 +391,6 @@ export function DropManager({ drop: initialDrop }: Props) {
               </span>
             )}
           </div>
-
-          {/* Pickup Date */}
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-forest/60">Pickup date</span>
-            <input
-              type="date"
-              value={drop.pickup_date}
-              onChange={(e) => updateField("pickup_date", e.target.value)}
-              className="text-sm font-semibold text-forest bg-white px-2 py-1 rounded outline-none ring-1 ring-forest/10 focus:ring-2 focus:ring-forest/20"
-            />
-          </div>
-
-          {/* Pickup Time */}
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-forest/60">Pickup time</span>
-            <div className="flex items-center gap-1">
-              <input
-                type="time"
-                value={drop.pickup_time_start}
-                onChange={(e) => updateField("pickup_time_start", e.target.value)}
-                className="text-sm font-semibold text-forest bg-white px-2 py-1 rounded outline-none ring-1 ring-forest/10 focus:ring-2 focus:ring-forest/20"
-              />
-              <span className="text-forest/30">–</span>
-              <input
-                type="time"
-                value={drop.pickup_time_end}
-                onChange={(e) => updateField("pickup_time_end", e.target.value)}
-                className="text-sm font-semibold text-forest bg-white px-2 py-1 rounded outline-none ring-1 ring-forest/10 focus:ring-2 focus:ring-forest/20"
-              />
-            </div>
-          </div>
-
-          {/* Orders Open */}
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-forest/60">Orders open</span>
-            <input
-              type="datetime-local"
-              value={drop.orders_open_at?.slice(0, 16) || ""}
-              onChange={(e) => updateField("orders_open_at", new Date(e.target.value).toISOString())}
-              className="text-sm font-semibold text-forest bg-white px-2 py-1 rounded outline-none ring-1 ring-forest/10 focus:ring-2 focus:ring-forest/20"
-            />
-          </div>
-
-          {/* Orders Close */}
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-forest/60">Orders close</span>
-            <input
-              type="datetime-local"
-              value={drop.orders_close_at?.slice(0, 16) || ""}
-              onChange={(e) => updateField("orders_close_at", new Date(e.target.value).toISOString())}
-              className="text-sm font-semibold text-forest bg-white px-2 py-1 rounded outline-none ring-1 ring-forest/10 focus:ring-2 focus:ring-forest/20"
-            />
-          </div>
         </div>
       </div>
 
@@ -385,6 +403,58 @@ export function DropManager({ drop: initialDrop }: Props) {
           Delete this draft
         </button>
       )}
+
+      {/* ── Wheel picker modals ── */}
+      {editing === "pickup_date" && (
+        <DateWheelPicker
+          value={drop.pickup_date}
+          label="Pickup date"
+          onConfirm={(val) => updateField("pickup_date", val)}
+          onClose={() => setEditing(null)}
+        />
+      )}
+
+      {editing === "pickup_time_start" && (
+        <TimeWheelPicker
+          value={drop.pickup_time_start || "14:00"}
+          label="Pickup start time"
+          onConfirm={(val) => updateField("pickup_time_start", val)}
+          onClose={() => setEditing(null)}
+        />
+      )}
+
+      {editing === "pickup_time_end" && (
+        <TimeWheelPicker
+          value={drop.pickup_time_end || "16:00"}
+          label="Pickup end time"
+          onConfirm={(val) => updateField("pickup_time_end", val)}
+          onClose={() => setEditing(null)}
+        />
+      )}
+
+      {editing === "orders_open_at" && (() => {
+        const cst = drop.orders_open_at ? utcToCST(drop.orders_open_at) : { date: new Date().toISOString().slice(0, 10), time: "00:00" };
+        return (
+          <DateWheelPicker
+            value={cst.date}
+            label="Orders open date"
+            onConfirm={(val) => updateField("orders_open_at", cstToUTC(val, cst.time))}
+            onClose={() => setEditing(null)}
+          />
+        );
+      })()}
+
+      {editing === "orders_close_at" && (() => {
+        const cst = drop.orders_close_at ? utcToCST(drop.orders_close_at) : { date: new Date().toISOString().slice(0, 10), time: "23:59" };
+        return (
+          <DateWheelPicker
+            value={cst.date}
+            label="Orders close date"
+            onConfirm={(val) => updateField("orders_close_at", cstToUTC(val, cst.time))}
+            onClose={() => setEditing(null)}
+          />
+        );
+      })()}
     </div>
   );
 }

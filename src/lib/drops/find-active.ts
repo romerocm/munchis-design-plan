@@ -2,9 +2,9 @@ import type { Drop, DropStatus } from "@/types/database";
 
 /**
  * Find the active drop from a list, by status priority.
- * Priority: live > closed > baking > draft > completed
+ * Priority: live > closed > baking > ready > draft > completed
  */
-const STATUS_PRIORITY: DropStatus[] = ["live", "closed", "baking", "draft", "completed"];
+const STATUS_PRIORITY: DropStatus[] = ["live", "closed", "baking", "ready", "draft", "completed"];
 
 export function findActiveDrop(drops: Drop[]): Drop | undefined {
   for (const status of STATUS_PRIORITY) {

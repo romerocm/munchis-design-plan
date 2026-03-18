@@ -31,6 +31,16 @@ export function HomeTab({ drops, orders, onEditDrop, onViewOrders, onUpdateStatu
           (o.status === "confirmed" || o.status === "picked_up")
       )
     : [];
+  const activeOrders = currentDrop
+    ? orders.filter(
+        (o) =>
+          o.drop_id === currentDrop.id &&
+          (o.status === "pending" || o.status === "confirmed" || o.status === "picked_up")
+      )
+    : [];
+  const usedCapacity = activeOrders.reduce((sum, o) => sum + o.quantity, 0);
+  const remainingCapacity = currentDrop ? currentDrop.capacity - usedCapacity : 0;
+  const isSoldOut = currentDrop ? remainingCapacity <= 0 : false;
   const totalRevenue = paidOrders.reduce((sum, o) => sum + o.total_cents, 0);
   const totalTreats = paidOrders.reduce((sum, o) => sum + o.quantity, 0);
   const recentOrders = currentDrop
@@ -97,18 +107,41 @@ export function HomeTab({ drops, orders, onEditDrop, onViewOrders, onUpdateStatu
                     {currentDrop.status.charAt(0).toUpperCase() + currentDrop.status.slice(1)}
                   </div>
                   {/* Valid transitions only */}
-                  {(DROP_TRANSITIONS[currentDrop.status] || []).map((s) => (
-                    <button
-                      key={s}
-                      onClick={() => {
-                        onUpdateStatus(currentDrop.id, s);
-                        setStatusDropdown(null);
-                      }}
-                      className="w-full px-4 py-2.5 text-left text-sm font-medium text-forest/60 hover:bg-forest/5 transition"
-                    >
-                      → {s.charAt(0).toUpperCase() + s.slice(1)}
-                    </button>
-                  ))}
+                  {(DROP_TRANSITIONS[currentDrop.status] || []).map((s) => {
+                    // Friendly labels for transitions
+                    const isReopen = currentDrop.status === "closed" && s === "live";
+                    const transitionLabels: Record<string, Record<string, string>> = {
+                      closed: { baking: "Start baking", live: "Reopen orders" },
+                      baking: { ready: "Ready for pickup", closed: "Back to closed" },
+                      ready: { completed: "Drop complete", baking: "Back to baking" },
+                      completed: { ready: "Back to ready" },
+                    };
+                    const label = transitionLabels[currentDrop.status]?.[s]
+                      || s.charAt(0).toUpperCase() + s.slice(1);
+                    const isBackward = label.startsWith("Back") || label.startsWith("Reopen");
+                    const disabled = isReopen && isSoldOut;
+                    return (
+                      <button
+                        key={s}
+                        disabled={disabled}
+                        onClick={() => {
+                          if (disabled) return;
+                          onUpdateStatus(currentDrop.id, s);
+                          setStatusDropdown(null);
+                        }}
+                        className={`w-full px-4 py-2.5 text-left text-sm font-medium transition ${
+                          disabled
+                            ? "text-forest/20 cursor-not-allowed"
+                            : "text-forest/60 hover:bg-forest/5"
+                        }`}
+                      >
+                        {isBackward ? "\u2190" : "\u2192"} {label}
+                        {disabled && (
+                          <span className="block text-[11px] text-forest/20 mt-0.5">Sold out — no capacity left</span>
+                        )}
+                      </button>
+                    );
+                  })}
                   {(DROP_TRANSITIONS[currentDrop.status] || []).length === 0 && (
                     <div className="px-4 py-2.5 text-sm text-forest/25">
                       No further transitions
@@ -133,6 +166,35 @@ export function HomeTab({ drops, orders, onEditDrop, onViewOrders, onUpdateStatu
             })}
           </div>
         </div>
+      )}
+
+      {/* Groceries toggle — visible only when orders are closed */}
+      {currentDrop && currentDrop.status === "closed" && (
+        <button
+          onClick={async () => {
+            const supabase = createClient();
+            const newValue = currentDrop.groceries_bought_at ? null : new Date().toISOString();
+            await supabase
+              .from("drops")
+              .update({ groceries_bought_at: newValue })
+              .eq("id", currentDrop.id);
+            router.refresh();
+          }}
+          className="mx-4 mt-3 flex items-center gap-3 p-3.5 rounded-xl bg-white btn-press"
+        >
+          <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition ${
+            currentDrop.groceries_bought_at
+              ? "bg-forest border-forest"
+              : "border-forest/20"
+          }`}>
+            {currentDrop.groceries_bought_at && (
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                <path d="M3 6.5L5 8.5L9 4" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            )}
+          </div>
+          <span className="text-sm font-semibold text-forest">Groceries bought</span>
+        </button>
       )}
 
       {/* Stats */}
@@ -169,6 +231,26 @@ export function HomeTab({ drops, orders, onEditDrop, onViewOrders, onUpdateStatu
             </svg>
             <span className="text-sm font-semibold text-forest">View orders</span>
           </button>
+        </div>
+      )}
+
+      {/* Empty state — no orders yet */}
+      {currentDrop && recentOrders.length === 0 && (
+        <div className="mt-5 mx-4 flex flex-col items-center text-center py-10 px-6 rounded-2xl bg-white">
+          <div className="w-14 h-14 rounded-full bg-forest/5 flex items-center justify-center mb-4">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <path d="M9 11l3 3 3-3" stroke="#1B3D2F" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" opacity="0.25" />
+              <rect x="3" y="3" width="18" height="18" rx="4" stroke="#1B3D2F" strokeWidth="1.5" opacity="0.25" />
+            </svg>
+          </div>
+          <p className="font-display font-black text-lg text-forest">No orders yet</p>
+          <p className="text-[13px] text-forest/40 mt-1 max-w-[240px] leading-relaxed">
+            {currentDrop.status === "closed"
+              ? "This drop closed without any orders. You can reopen it or start baking."
+              : currentDrop.status === "live"
+              ? "Share your drop link to start getting orders!"
+              : "Orders will appear here once the drop goes live."}
+          </p>
         </div>
       )}
 

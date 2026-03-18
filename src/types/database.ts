@@ -1,4 +1,4 @@
-export type DropStatus = "draft" | "live" | "closed" | "baking" | "completed";
+export type DropStatus = "draft" | "live" | "closed" | "baking" | "ready" | "completed";
 export type OrderStatus = "pending" | "confirmed" | "expired" | "cancelled" | "picked_up";
 
 export interface Drop {
@@ -16,6 +16,8 @@ export interface Drop {
   pickup_time_end: string;
   orders_open_at: string;
   orders_close_at: string;
+  closed_at: string | null;
+  groceries_bought_at: string | null;
   hero_image_url: string | null;
   flavor_image_url: string | null;
   created_at: string;
