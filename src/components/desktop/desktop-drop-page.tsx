@@ -140,12 +140,10 @@ export function DesktopDropPage({ drop, remaining }: Props) {
                     <span className="text-xs font-semibold text-forest/60">{orderedCount} orders this drop</span>
                   </div>
                   <h1 className="font-display font-black text-4xl text-forest mb-4">Orders are closed!</h1>
-                  <p className="text-sm text-forest/50 leading-relaxed mb-6">
+                  <p className="text-sm text-forest/50 leading-relaxed">
                     We&apos;re buying fresh ingredients Friday and baking everything by hand on Saturday.
+                    Your treats will be ready for pickup Sunday.
                   </p>
-                  <div className="max-w-sm mx-auto">
-                    <NotifyForm dropId={drop.id} subtitle={`Be first in line when Drop ${formatDropNumber(drop.number + 1)} opens`} />
-                  </div>
                 </>
               )}
             </div>
@@ -165,10 +163,10 @@ export function DesktopDropPage({ drop, remaining }: Props) {
 
       {/* Bottom Cards */}
       <div className={`flex gap-4 ${cx}`}>
-        {/* Coming Next Week */}
-        <div className="flex-1 p-8 rounded-[20px] bg-[#E1CDE4] flex flex-col items-center justify-center text-center gap-3">
+        {/* Coming Next Week — promoted to primary CTA when closed */}
+        <div className={`${isClosed ? "flex-[3]" : "flex-1"} p-8 rounded-[20px] bg-[#E1CDE4] flex flex-col items-center justify-center text-center gap-3`}>
           <p className="text-[11px] font-semibold text-forest/35 uppercase tracking-wider">Coming next week</p>
-          <p className="font-display font-black text-2xl text-forest">Matcha White Choc</p>
+          <p className={`font-display font-black ${isClosed ? "text-[32px]" : "text-2xl"} text-forest`}>Matcha White Choc</p>
           <p className="text-[13px] text-forest/45 max-w-[320px]">
             One flavor per drop. Sign up to get notified when it goes live.
           </p>
@@ -178,7 +176,7 @@ export function DesktopDropPage({ drop, remaining }: Props) {
         </div>
 
         {/* Meet Heidi */}
-        <div id="meet-heidi" className="flex-1 p-8 rounded-[20px] bg-mint flex flex-col items-center justify-center text-center gap-3">
+        <div id="meet-heidi" className={`${isClosed ? "flex-[2]" : "flex-1"} p-8 rounded-[20px] bg-mint flex flex-col items-center justify-center text-center gap-3`}>
           <div className="w-12 h-12 rounded-full overflow-hidden">
             <Image src="/images/munchis-icon.svg" alt="munchis" width={48} height={48} />
           </div>
