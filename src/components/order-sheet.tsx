@@ -225,6 +225,15 @@ export function OrderSheet({ drop, remaining, onClose, onOrderComplete }: OrderS
           </svg>
         </button>
 
+        {/* Step indicator (Goal-Gradient Effect) */}
+        <div className="flex items-center gap-2.5 mb-4">
+          <div className="flex items-center gap-1.5">
+            <div className={`w-6 h-[3px] rounded-full ${step === "quantity" ? "bg-forest" : "bg-forest"}`} />
+            <div className={`w-6 h-[3px] rounded-full ${step === "contact" ? "bg-forest" : "bg-forest/12"}`} />
+          </div>
+          <span className="text-xs text-forest/35">Step {step === "quantity" ? "1" : "2"} of 2</span>
+        </div>
+
         {step === "quantity" && (
           <>
             <div className="flex items-baseline justify-between mb-6">

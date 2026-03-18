@@ -20,6 +20,8 @@ function makeDrop(overrides: Partial<Drop> = {}): Drop {
     orders_close_at: "2026-03-19T00:00:00Z",
     hero_image_url: null,
     flavor_image_url: null,
+    closed_at: null,
+    groceries_bought_at: null,
     created_at: "2026-03-15T00:00:00Z",
     updated_at: "2026-03-15T00:00:00Z",
     ...overrides,
@@ -49,6 +51,15 @@ describe("findActiveDrop", () => {
       makeDrop({ id: "completed", number: 0, status: "completed" }),
     ];
     expect(findActiveDrop(drops)?.id).toBe("baking");
+  });
+
+  it("returns ready drop when no live, closed, or baking", () => {
+    const drops = [
+      makeDrop({ id: "ready", number: 1, status: "ready" }),
+      makeDrop({ id: "draft", number: 2, status: "draft" }),
+      makeDrop({ id: "completed", number: 0, status: "completed" }),
+    ];
+    expect(findActiveDrop(drops)?.id).toBe("ready");
   });
 
   it("returns draft when no active drops", () => {

@@ -25,27 +25,32 @@ async function getActiveDrop() {
 
   const drop = findActiveDrop(drops || []) ?? null;
 
-  if (!drop) return { drop: null, remaining: 0 };
+  if (!drop) return { drop: null, remaining: 0, nextDrop: null };
 
   const { data: remaining } = await supabase.rpc(
     "get_drop_remaining_capacity",
     { p_drop_id: drop.id }
   );
 
-  return { drop, remaining: remaining ?? 0 };
+  // Find the next scheduled drop (draft with future open date, excluding current)
+  const nextDrop = (drops || []).find(
+    (d) => d.status === "draft" && d.id !== drop.id && new Date(d.orders_open_at) > new Date()
+  ) ?? null;
+
+  return { drop, remaining: remaining ?? 0, nextDrop };
 }
 
 async function DropContent() {
-  const { drop, remaining } = await getActiveDrop();
+  const { drop, remaining, nextDrop } = await getActiveDrop();
   return (
     <>
       {/* Mobile: <1024px */}
       <div className="lg:hidden">
-        <DropPage drop={drop} remaining={remaining} />
+        <DropPage drop={drop} remaining={remaining} nextDrop={nextDrop} />
       </div>
       {/* Desktop: ≥1024px */}
       <div className="hidden lg:block">
-        <DesktopDropPage drop={drop} remaining={remaining} />
+        <DesktopDropPage drop={drop} remaining={remaining} nextDrop={nextDrop} />
       </div>
     </>
   );

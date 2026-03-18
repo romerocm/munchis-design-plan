@@ -51,7 +51,7 @@ export function NotifyForm({ dropId, subtitle }: NotifyFormProps) {
 
   return (
     <div>
-      <div className="flex gap-2">
+      <div className="flex gap-2 justify-center">
         <PhoneInput
           value={whatsapp}
           onChange={setWhatsapp}

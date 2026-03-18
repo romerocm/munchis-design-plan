@@ -1,12 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { CountdownTimer } from "./shared/countdown-timer";
 import { NotifyForm } from "./shared/notify-form";
+import { NextDropCard } from "./shared/next-drop-card";
 import { OrderSheet } from "./order-sheet";
 import { formatDropNumber } from "@/lib/drops/constants";
-import { formatCents } from "@/lib/format";
+import { formatCents, formatDay, formatDayOffset } from "@/lib/format";
 import type { Drop } from "@/types/database";
 
 /*
@@ -37,6 +39,7 @@ type Direction = "forward" | "back";
 interface DropPageProps {
   drop: Drop | null;
   remaining: number;
+  nextDrop: Drop | null;
 }
 
 interface OrderResult {
@@ -48,11 +51,12 @@ interface OrderResult {
   flavor_name: string;
 }
 
-export function DropPage({ drop, remaining }: DropPageProps) {
+export function DropPage({ drop, remaining, nextDrop }: DropPageProps) {
   const [liveScreen, setLiveScreen] = useState<LiveScreen>("hero");
   const [direction, setDirection] = useState<Direction>("forward");
   const [showOrder, setShowOrder] = useState(false);
   const [orderResult, setOrderResult] = useState<OrderResult | null>(null);
+  const router = useRouter();
 
   function goTo(screen: LiveScreen, dir: Direction = "forward") {
     setDirection(dir);
@@ -105,7 +109,7 @@ export function DropPage({ drop, remaining }: DropPageProps) {
                   opacity="0.5"
                 />
               </svg>
-              Baked Saturday · Pickup Sunday at {drop.pickup_location}
+              Baked {formatDayOffset(drop.pickup_date, -1)} · Pickup {formatDay(drop.pickup_date)} at {drop.pickup_location}
             </div>
           )}
         </div>
@@ -133,15 +137,40 @@ export function DropPage({ drop, remaining }: DropPageProps) {
   if (
     drop.status === "closed" ||
     drop.status === "baking" ||
+    drop.status === "ready" ||
     drop.status === "completed"
   ) {
     const orderedCount = drop.capacity - remaining;
 
-    const statusMessages = {
-      closed: "We're buying fresh ingredients Friday and baking everything by hand on Saturday. All made from scratch, just for you.",
-      baking: "Your treats are being baked fresh right now! Heidi is in the kitchen making everything from scratch for Sunday pickup.",
+    const bakingDay = formatDayOffset(drop.pickup_date, -1);
+    const ingredientsDay = formatDayOffset(drop.pickup_date, -2);
+    const pickupDay = formatDay(drop.pickup_date);
+
+    const soldOut = remaining === 0;
+    const statusMessages: Record<string, string> = {
+      closed: soldOut
+        ? `All ${drop.capacity} spots claimed! We're getting fresh ingredients ${ingredientsDay} and baking everything by hand on ${bakingDay}.`
+        : `We're buying fresh ingredients ${ingredientsDay} and baking everything by hand on ${bakingDay}. All made from scratch, just for you.`,
+      baking: `Your treats are being baked fresh right now! Heidi is in the kitchen making everything from scratch for ${pickupDay} pickup.`,
+      ready: `Your treats are ready! Head to ${drop.pickup_location} on ${pickupDay} to pick up your order.`,
       completed: `Drop ${formatDropNumber(drop.number)} is complete! ${orderedCount} orders, all handmade. Stay tuned for the next flavor.`,
     };
+
+    const closedHeading = drop.status === "closed" && soldOut
+      ? "Sold out!"
+      : drop.status === "baking"
+      ? "We\u2019re baking your treats"
+      : drop.status === "ready"
+      ? "Ready for pickup!"
+      : drop.status === "completed"
+      ? "Drop complete!"
+      : "Orders are closed";
+
+    const navBadge = drop.status === "ready"
+      ? "READY FOR PICKUP"
+      : drop.status === "closed" && soldOut
+      ? "SOLD OUT"
+      : "ORDERS CLOSED";
 
     return (
       <main className="min-h-screen w-full max-w-lg mx-auto bg-cream flex flex-col">
@@ -153,24 +182,24 @@ export function DropPage({ drop, remaining }: DropPageProps) {
             height={34}
             className="h-7 w-auto"
           />
-          <div className="px-3 py-1.5 rounded-full border border-forest/10">
-            <span className="text-xs font-semibold text-forest/50">
-              ORDERS CLOSED
+          <div className={`px-3 py-1.5 rounded-full border ${soldOut ? "border-amber/30 bg-amber/8" : "border-forest/10"}`}>
+            <span className={`text-xs font-semibold ${soldOut ? "text-amber" : "text-forest/50"}`}>
+              {navBadge}
             </span>
           </div>
         </nav>
 
         <div className="px-4 pt-4 flex-1">
           <div className="flex items-center gap-2 mb-4">
-            <div className="px-3 py-1.5 rounded-full bg-forest/8">
-              <span className="text-xs font-semibold text-forest/60">
-                {orderedCount} orders this drop
+            <div className={`px-3 py-1.5 rounded-full ${soldOut ? "bg-amber/10" : "bg-forest/8"}`}>
+              <span className={`text-xs font-semibold ${soldOut ? "text-amber" : "text-forest/60"}`}>
+                {soldOut ? `${drop.capacity} of ${drop.capacity} claimed` : `${orderedCount} orders this drop`}
               </span>
             </div>
           </div>
 
           <h2 className="font-display font-black text-[28px] leading-tight text-forest mb-3">
-            Orders are closed!
+            {closedHeading}
           </h2>
 
           <p className="text-sm text-forest/55 leading-relaxed mb-6">
@@ -232,7 +261,7 @@ export function DropPage({ drop, remaining }: DropPageProps) {
           Order reserved!
         </h2>
         <p className="text-sm text-forest/50 text-center max-w-[280px] mb-8">
-          Pay within 2 hours to lock in your order. Everything will be baked fresh by hand this Saturday, just for you.
+          Pay within 2 hours to lock in your order. Everything will be baked fresh by hand, just for you.
         </p>
 
         <div className="flex items-center gap-2 mb-8">
@@ -249,7 +278,7 @@ export function DropPage({ drop, remaining }: DropPageProps) {
             </span>
           </div>
           <p className="text-xs text-forest/40 mb-3">
-            Baked fresh Saturday · Pickup Sunday · {drop.pickup_location}
+            Baked fresh {formatDayOffset(drop.pickup_date, -1)} · Pickup {formatDay(drop.pickup_date)} · {drop.pickup_location}
           </p>
           <div className="flex justify-between items-baseline border-t border-forest/8 pt-3">
             <span className="font-semibold text-forest">Total</span>
@@ -286,7 +315,7 @@ export function DropPage({ drop, remaining }: DropPageProps) {
           You got yours!
         </h2>
         <p className="text-sm text-white/50 text-center mb-8">
-          Your order is being baked from scratch this Saturday
+          Your order will be baked fresh from scratch
         </p>
 
         {/* Share Card */}
@@ -343,9 +372,9 @@ export function DropPage({ drop, remaining }: DropPageProps) {
             height={34}
             className="h-7 w-auto"
           />
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-forest/10">
-            <div className="w-1.5 h-1.5 rounded-full bg-green-accent animate-pulse" />
-            <span className="text-xs font-semibold text-forest">
+          <div className="flex items-center gap-2 px-3.5 py-2 rounded-full bg-green-accent/8 border border-green-accent/20">
+            <div className="w-2 h-2 rounded-full bg-green-accent animate-pulse" />
+            <span className="text-[13px] font-semibold text-forest">
               DROP LIVE
             </span>
           </div>
@@ -365,7 +394,7 @@ export function DropPage({ drop, remaining }: DropPageProps) {
               />
             </svg>
             <span className="text-[11px] font-semibold text-white tracking-wide">
-              {drop.pickup_location} · Sunday {drop.pickup_time_start?.slice(0, 5)}
+              {drop.pickup_location} · {formatDay(drop.pickup_date)} {drop.pickup_time_start?.slice(0, 5)}
             </span>
           </div>
         </div>
@@ -406,7 +435,7 @@ export function DropPage({ drop, remaining }: DropPageProps) {
           </div>
           <button
             onClick={() => goTo("flavor", "forward")}
-            className="w-full py-4 rounded-2xl bg-forest text-white font-semibold text-base flex items-center justify-center gap-2 btn-press"
+            className="w-full py-4 rounded-2xl bg-amber text-white font-semibold text-base flex items-center justify-center gap-2 btn-press"
           >
             Order Now
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
@@ -419,6 +448,13 @@ export function DropPage({ drop, remaining }: DropPageProps) {
               />
             </svg>
           </button>
+          {/* Scarcity hint (Goal-Gradient) */}
+          <div className="flex items-center justify-center gap-3 mt-3">
+            <div className="flex-1 max-w-[200px] h-1 rounded-full bg-forest/6 overflow-hidden">
+              <div className="h-full rounded-full bg-amber/60" style={{ width: `${capacityPercent}%` }} />
+            </div>
+            <span className="text-xs text-forest/40">{orderedCount} of {drop.capacity} claimed</span>
+          </div>
         </div>
       </main>
     );
@@ -474,43 +510,31 @@ export function DropPage({ drop, remaining }: DropPageProps) {
           <p className="text-sm text-forest/50 leading-relaxed mb-4">
             {drop.flavor_description}
           </p>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 flex-1">
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center gap-2">
               <div className="flex-1 h-1.5 rounded-full bg-forest/8">
                 <div
-                  className="h-1.5 rounded-full bg-forest animate-fill-bar"
+                  className="h-1.5 rounded-full bg-amber animate-fill-bar"
                   style={{ width: `${Math.min(capacityPercent, 100)}%` }}
                 />
               </div>
               <span className="text-xs text-forest/40">
-                {orderedCount} ordered
+                {orderedCount} of {drop.capacity} claimed
               </span>
             </div>
             <button
               onClick={() => setShowOrder(true)}
-              className="ml-4 px-5 py-2 rounded-xl bg-forest text-white text-sm font-semibold btn-press"
+              className="w-full py-3 rounded-xl bg-amber text-white text-sm font-semibold btn-press"
             >
-              Add
+              Add to order
             </button>
           </div>
         </div>
       </div>
 
-      {/* Coming Next Week */}
-      <div className="mx-4 mt-3 p-5 rounded-2xl bg-[#E1CDE4] text-center animate-stagger-2">
-        <p className="text-[11px] font-semibold text-forest/40 uppercase tracking-wider mb-2">
-          Coming next week
-        </p>
-        <p className="font-display font-black text-xl text-forest mb-1">
-          Matcha White Choc
-        </p>
-        <p className="text-xs text-forest/50">
-          One flavor per drop. Sign up to get notified when it goes live.
-        </p>
-      </div>
-
       {/* Meet Heidi */}
-      <div className="mx-4 mt-3 mb-8 px-4 py-8 rounded-2xl bg-mint animate-stagger-3">
+      <div className="mx-4 mt-3 px-4 py-8 rounded-2xl bg-mint animate-stagger-2">
+
         <div className="flex flex-col items-center text-center gap-4">
           <div className="w-16 h-16 rounded-full overflow-hidden">
             <img
@@ -537,18 +561,19 @@ export function DropPage({ drop, remaining }: DropPageProps) {
         </div>
       </div>
 
+      {/* Coming Next Week */}
+      <div className="mx-4 mt-3 mb-8 animate-stagger-3">
+        <NextDropCard nextDrop={nextDrop} currentDropId={drop.id} className="!rounded-2xl !p-5" />
+      </div>
+
       {showOrder && (
         <OrderSheet
           drop={drop}
           remaining={remaining}
           onClose={() => setShowOrder(false)}
           onOrderComplete={(result) => {
-            setOrderResult({
-              ...result,
-              flavor_name: drop.flavor_name,
-            });
             setShowOrder(false);
-            goTo("pay-now", "forward");
+            router.push(`/order/${result.order_id}`);
           }}
         />
       )}

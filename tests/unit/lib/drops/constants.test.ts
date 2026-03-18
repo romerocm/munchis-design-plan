@@ -31,12 +31,16 @@ describe("DROP_TRANSITIONS", () => {
     expect(DROP_TRANSITIONS.closed).toContain("live");
   });
 
-  it("allows baking -> completed only", () => {
-    expect(DROP_TRANSITIONS.baking).toEqual(["completed"]);
+  it("allows baking -> ready or back to closed", () => {
+    expect(DROP_TRANSITIONS.baking).toEqual(["ready", "closed"]);
   });
 
-  it("completed is terminal (no transitions)", () => {
-    expect(DROP_TRANSITIONS.completed).toEqual([]);
+  it("allows ready -> completed or back to baking", () => {
+    expect(DROP_TRANSITIONS.ready).toEqual(["completed", "baking"]);
+  });
+
+  it("allows completed -> back to ready", () => {
+    expect(DROP_TRANSITIONS.completed).toEqual(["ready"]);
   });
 
   it("every status has a transition entry", () => {
