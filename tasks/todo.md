@@ -27,7 +27,7 @@
 
 ## Paper Design — New Artboards Needed
 - [ ] Desktop v2 — Pre-Drop (countdown + marquee + how-it-works + notify)
-- [ ] Desktop v2 — Closed/Baking (no marquee/how-it-works, Coming Next Week as primary CTA)
+- [x] Desktop v2 — Closed/Baking (no marquee/how-it-works, Coming Next Week as primary CTA)
 - [ ] Desktop v2 — Completed (recap, next drop teaser)
 - [ ] Desktop v2 — Order Modal (centered overlay on live drop)
 - [ ] Desktop v2 — Pay Now + Confirmed (desktop versions of mobile screens)
