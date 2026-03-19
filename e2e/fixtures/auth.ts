@@ -11,7 +11,7 @@ export async function loginAsBaker(page: Page) {
   await page.goto("/parrot/login");
   await page.getByPlaceholder(/email/i).fill(email);
   await page.getByPlaceholder(/password/i).fill(password);
-  await page.getByRole("button", { name: /log in|sign in/i }).click();
+  await page.getByRole("button", { name: /enter|log in|sign in/i }).click();
 
   // Wait for redirect to dashboard
   await page.waitForURL("**/parrot/dashboard**", { timeout: 10_000 });

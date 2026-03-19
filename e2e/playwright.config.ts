@@ -41,8 +41,8 @@ export default defineConfig({
 
   webServer: {
     command: process.env.CI
-      ? "npm start -- --port 3695"    // CI: serve production build (faster, pre-built)
-      : "npm run dev -- --port 3695", // Local: dev server with HMR
+      ? "PORT=3695 node .next/standalone/server.js"  // CI: standalone output mode
+      : "npm run dev -- --port 3695",                // Local: dev server with HMR
     port: 3695,
     reuseExistingServer: true,
     timeout: 120_000, // production build cold-start can be slow in CI
