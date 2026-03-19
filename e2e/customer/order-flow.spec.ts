@@ -27,7 +27,7 @@ test.describe("Order Flow", () => {
     // Step 2: Quantity selection
     const continueButton = page.getByText(/continue to checkout/i).first();
     if (await continueButton.isVisible({ timeout: 3_000 }).catch(() => false)) {
-      const plusButton = page.getByText("+").first();
+      const plusButton = page.getByRole("button", { name: "+", exact: true }).first();
       if (await plusButton.isVisible().catch(() => false)) {
         await plusButton.click();
         await page.waitForTimeout(200);
