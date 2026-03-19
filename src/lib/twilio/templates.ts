@@ -81,8 +81,8 @@ export function buildPaymentConfirmedVars(data: {
 }): string {
   return JSON.stringify({
     "1": data.customerName,
-    "2": data.pickupDate,
-    "3": data.pickupTime,
+    "2": formatDateEs(data.pickupDate),
+    "3": formatTimeEs(data.pickupTime),
     "4": data.pickupLocation,
     "5": `${data.quantity}× ${data.flavorName}`,
     "6": data.mapQuery,
@@ -132,8 +132,8 @@ export function buildPickupReminderVars(data: {
   mapQuery: string;
 }): string {
   return JSON.stringify({
-    "1": data.pickupDate,
-    "2": data.pickupTime,
+    "1": formatDateEs(data.pickupDate),
+    "2": formatTimeEs(data.pickupTime),
     "3": data.pickupLocation,
     "4": `${data.quantity}× ${data.flavorName}`,
     "5": data.mapQuery,
@@ -142,4 +142,27 @@ export function buildPickupReminderVars(data: {
 
 export function formatCentsToDollars(cents: number): string {
   return `$${(cents / 100).toFixed(2)}`;
+}
+
+/**
+ * Format a date string (YYYY-MM-DD) to Spanish: "sábado 5 de abril"
+ */
+export function formatDateEs(dateStr: string): string {
+  const [y, m, d] = dateStr.split("-").map(Number);
+  const date = new Date(y, m - 1, d);
+  return date.toLocaleDateString("es-SV", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+  });
+}
+
+/**
+ * Format a time string (HH:MM:SS or HH:MM) to "2:00 PM"
+ */
+export function formatTimeEs(timeStr: string): string {
+  const [h, m] = timeStr.split(":").map(Number);
+  const period = h >= 12 ? "PM" : "AM";
+  const hour12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
+  return `${hour12}:${String(m).padStart(2, "0")} ${period}`;
 }
