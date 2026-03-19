@@ -11,6 +11,7 @@ import { OrdersTab } from "./tabs/orders-tab";
 import { DropsTab } from "./tabs/drops-tab";
 import { LabTab } from "./tabs/lab-tab";
 import { DropManager } from "./drop-manager";
+import { DropDetail } from "./drop-detail";
 import { RecipeDetailView } from "./recipe-detail";
 import { ShoppingList } from "./shopping-list";
 import { BakingPlan } from "./baking-plan";
@@ -18,7 +19,8 @@ import type { Drop, Order, Recipe, DropStats } from "@/types/database";
 
 type View =
   | { type: "tabs" }
-  | { type: "editDrop"; drop: Drop }
+  | { type: "dropDetail"; drop: Drop }
+  | { type: "editDrop"; drop: Drop; from?: "dropDetail" }
   | { type: "recipeDetail"; recipeId: string }
   | { type: "shopping"; dropId: string }
   | { type: "baking"; dropId: string };
@@ -101,14 +103,38 @@ export function DashboardClient({ drops, orders, recipes, dropStats }: Props) {
     return drops.find((d) => d.id === dropId);
   }
 
-  // Sub-views (recipe detail, shopping, baking, drop editor)
+  // Sub-views (recipe detail, shopping, baking, drop detail, drop editor)
+  if (view.type === "dropDetail") {
+    // Use fresh data from props (server may have refreshed)
+    const freshDrop = drops.find((d) => d.id === view.drop.id) || view.drop;
+    return (
+      <main className="min-h-screen bg-cream">
+        <div className="max-w-lg mx-auto">
+          <DropDetail
+            drop={freshDrop}
+            orders={orders}
+            onBack={() => { setView({ type: "tabs" }); router.refresh(); }}
+            onEdit={() => setView({ type: "editDrop", drop: freshDrop, from: "dropDetail" })}
+          />
+        </div>
+      </main>
+    );
+  }
+
   if (view.type === "editDrop") {
     return (
       <main className="min-h-screen bg-cream">
         <div className="max-w-lg mx-auto">
           <div className="flex items-center justify-between px-4 pt-4 pb-2">
             <button
-              onClick={() => { setView({ type: "tabs" }); router.refresh(); }}
+              onClick={() => {
+                if (view.from === "dropDetail") {
+                  setView({ type: "dropDetail", drop: view.drop });
+                } else {
+                  setView({ type: "tabs" });
+                }
+                router.refresh();
+              }}
               className="flex items-center gap-2 text-forest/50 btn-press"
             >
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
@@ -223,7 +249,7 @@ export function DashboardClient({ drops, orders, recipes, dropStats }: Props) {
           <DropsTab
             drops={drops}
             orders={orders}
-            onEditDrop={(drop) => setView({ type: "editDrop", drop })}
+            onEditDrop={(drop) => setView({ type: "dropDetail", drop })}
             onCreateDrop={createDrop}
           />
         )}
