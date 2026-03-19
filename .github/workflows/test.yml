@@ -78,7 +78,10 @@ jobs:
 
       - name: Build Next.js
         if: steps.check-secrets.outputs.skip != 'true'
-        run: npm run build
+        run: |
+          npm run build
+          cp -r .next/static .next/standalone/.next/static
+          cp -r public .next/standalone/public 2>/dev/null || true
 
       - name: Run E2E tests
         if: steps.check-secrets.outputs.skip != 'true'
