@@ -29,6 +29,7 @@ test.describe("Live Drop Experience", () => {
       return;
     }
 
+    await orderButton.first().scrollIntoViewIfNeeded();
     await orderButton.first().click();
 
     // Should show flavor details or order sheet

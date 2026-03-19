@@ -13,7 +13,8 @@ test.describe("Order Flow", () => {
       return;
     }
 
-    // Step 1: Click order
+    // Step 1: Click order (button may be below the fold on mobile)
+    await orderButton.first().scrollIntoViewIfNeeded();
     await orderButton.first().click();
     await page.waitForTimeout(500);
 
@@ -78,11 +79,13 @@ test.describe("Order Flow", () => {
       return;
     }
 
+    await orderButton.first().scrollIntoViewIfNeeded();
     await orderButton.first().click();
     await page.waitForTimeout(500);
 
     const addToOrder = page.getByText(/add to order/i);
     if (await addToOrder.count() > 0) {
+      await addToOrder.first().scrollIntoViewIfNeeded();
       await addToOrder.first().click();
       await page.waitForTimeout(500);
     }
