@@ -1,4 +1,7 @@
+import path from "path";
 import { defineConfig, devices } from "@playwright/test";
+
+const projectRoot = path.resolve(__dirname, "..");
 
 export default defineConfig({
   testDir: ".",
@@ -44,6 +47,7 @@ export default defineConfig({
       ? "PORT=3695 node .next/standalone/server.js"  // CI: standalone output mode
       : "npm run dev -- --port 3695",                // Local: dev server with HMR
     port: 3695,
+    cwd: projectRoot,
     reuseExistingServer: true,
     timeout: 120_000, // production build cold-start can be slow in CI
   },
