@@ -1,6 +1,6 @@
 "use client";
 
-export type Tab = "home" | "orders" | "drops";
+export type Tab = "home" | "orders" | "lab" | "drops";
 
 interface TabBarProps {
   active: Tab;
@@ -36,6 +36,26 @@ export function TabBar({ active, onChange }: TabBarProps) {
           <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
             <rect x="2" y="3.5" width="16" height="13" rx="2" stroke="#1B3D2F" strokeWidth="1.3" opacity="0.3" />
             <path d="M2 7.5h16" stroke="#1B3D2F" strokeWidth="1.3" opacity="0.3" />
+          </svg>
+        ),
+    },
+    {
+      id: "lab",
+      label: "Lab",
+      icon: (filled) =>
+        filled ? (
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+            <rect x="2.5" y="2.5" width="6.5" height="6.5" rx="1.5" fill="#1B3D2F" />
+            <rect x="11" y="2.5" width="6.5" height="6.5" rx="1.5" fill="#1B3D2F" />
+            <rect x="2.5" y="11" width="6.5" height="6.5" rx="1.5" fill="#1B3D2F" />
+            <rect x="11" y="11" width="6.5" height="6.5" rx="1.5" fill="#1B3D2F" />
+          </svg>
+        ) : (
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+            <rect x="2.5" y="2.5" width="6.5" height="6.5" rx="1.5" stroke="#1B3D2F" strokeWidth="1.3" opacity="0.3" />
+            <rect x="11" y="2.5" width="6.5" height="6.5" rx="1.5" stroke="#1B3D2F" strokeWidth="1.3" opacity="0.3" />
+            <rect x="2.5" y="11" width="6.5" height="6.5" rx="1.5" stroke="#1B3D2F" strokeWidth="1.3" opacity="0.3" />
+            <rect x="11" y="11" width="6.5" height="6.5" rx="1.5" stroke="#1B3D2F" strokeWidth="1.3" opacity="0.3" />
           </svg>
         ),
     },

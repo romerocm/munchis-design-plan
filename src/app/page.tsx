@@ -32,10 +32,16 @@ async function getActiveDrop() {
     { p_drop_id: drop.id }
   );
 
-  // Find the next scheduled drop (draft with future open date, excluding current)
-  const nextDrop = (drops || []).find(
-    (d) => d.status === "draft" && d.id !== drop.id && new Date(d.orders_open_at) > new Date()
-  ) ?? null;
+  // Find the next upcoming drop (scheduled or draft with future open date, excluding current)
+  // Only expose scheduled drops to customers — drafts stay hidden
+  const nextDrop = (drops || [])
+    .filter(
+      (d) =>
+        (d.status === "scheduled" || d.status === "draft") &&
+        d.id !== drop?.id &&
+        new Date(d.orders_open_at) > new Date()
+    )
+    .sort((a, b) => a.orders_open_at.localeCompare(b.orders_open_at))[0] ?? null;
 
   return { drop, remaining: remaining ?? 0, nextDrop };
 }

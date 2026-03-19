@@ -41,6 +41,19 @@ export async function PATCH(req: NextRequest) {
     );
   }
 
+  // Rollback cleanup: delete snapshots when going back to live, reset when going back to closed
+  if (current.status === "closed" && status === "live") {
+    // Rolling back to live: delete shopping + baking snapshots (will regenerate on next close)
+    await supabase.from("drop_shopping_items").delete().eq("drop_id", dropId);
+    await supabase.from("drop_baking_steps").delete().eq("drop_id", dropId);
+  } else if (current.status === "baking" && status === "closed") {
+    // Rolling back to closed: reset all baking step statuses to pending
+    await supabase
+      .from("drop_baking_steps")
+      .update({ status: "pending", started_at: null, completed_at: null })
+      .eq("drop_id", dropId);
+  }
+
   const { data, error } = await supabase
     .from("drops")
     .update({ status })

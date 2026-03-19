@@ -5,8 +5,8 @@ export const MAX_ORDER_QUANTITY = 12;
 export const MIN_ORDER_QUANTITY = 1;
 
 /** Payment window duration */
-export const PAYMENT_WINDOW_MS = 2 * 60 * 60 * 1000;
-export const PAYMENT_WINDOW_HOURS = 2;
+export const PAYMENT_WINDOW_MS = 20 * 60 * 1000;
+export const PAYMENT_WINDOW_MINUTES = 20;
 
 /** CSS class mapping for order status badges */
 export const ORDER_STATUS_COLORS: Record<OrderStatus, string> = {

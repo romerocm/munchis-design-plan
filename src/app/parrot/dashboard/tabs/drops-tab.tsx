@@ -13,8 +13,8 @@ interface Props {
 }
 
 export function DropsTab({ drops, orders, onEditDrop, onCreateDrop }: Props) {
-  const liveDrop = findActiveDrop(drops.filter((d) => d.status !== "draft" && d.status !== "completed"));
-  const drafts = drops.filter((d) => d.status === "draft");
+  const liveDrop = findActiveDrop(drops.filter((d) => d.status !== "draft" && d.status !== "scheduled" && d.status !== "completed"));
+  const drafts = drops.filter((d) => d.status === "draft" || d.status === "scheduled");
   const completed = drops.filter((d) => d.status === "completed");
 
   function getDropStats(drop: Drop) {
@@ -78,7 +78,7 @@ export function DropsTab({ drops, orders, onEditDrop, onCreateDrop }: Props) {
                 Drop {formatDropNumber(liveDrop.number)} · {getDropStats(liveDrop).orderCount} orders · {formatCents(getDropStats(liveDrop).revenue, 0)} · {liveDrop.pickup_location}
               </p>
               <p className="text-[11px] text-white/25 mt-0.5">
-                Closes {new Date(liveDrop.orders_close_at).toLocaleDateString("en-US", { weekday: "short" })} midnight
+                Closes {new Date(liveDrop.orders_close_at).toLocaleDateString("en-US", { weekday: "short", timeZone: "America/El_Salvador" })} midnight
               </p>
             </div>
           </div>
@@ -88,7 +88,7 @@ export function DropsTab({ drops, orders, onEditDrop, onCreateDrop }: Props) {
       {/* Scheduled drafts */}
       {drafts.length > 0 && (
         <>
-          <p className="text-[11px] font-semibold text-forest/30 uppercase tracking-wider px-4 mt-5 mb-2">Scheduled drafts</p>
+          <p className="text-[11px] font-semibold text-forest/30 uppercase tracking-wider px-4 mt-5 mb-2">Upcoming</p>
           <div className="mx-4 space-y-1.5">
             {drafts.map((draft) => (
               <button
@@ -102,9 +102,11 @@ export function DropsTab({ drops, orders, onEditDrop, onCreateDrop }: Props) {
                 <div className="flex-1 text-left">
                   <p className="text-[15px] font-semibold text-forest">{draft.flavor_name}</p>
                   <p className="text-xs text-forest/35">
-                    {new Date(draft.orders_open_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })} - {new Date(draft.pickup_date).toLocaleDateString("en-US", { month: "short", day: "numeric" })} · {draft.pickup_location}
+                    {new Date(draft.orders_open_at).toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "America/El_Salvador" })} - {new Date(draft.pickup_date + "T12:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "America/El_Salvador" })} · {draft.pickup_location}
                   </p>
-                  <p className="text-[11px] text-amber mt-0.5">Goes live {daysUntil(draft.orders_open_at)}</p>
+                  <p className="text-[11px] text-amber mt-0.5">
+                    {draft.status === "scheduled" ? `Scheduled · Goes live ${daysUntil(draft.orders_open_at)}` : "Draft"}
+                  </p>
                 </div>
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                   <path d="M6 4l4 4-4 4" stroke="#1B3D2F" strokeWidth="1.5" strokeLinecap="round" opacity="0.2" />
@@ -137,7 +139,7 @@ export function DropsTab({ drops, orders, onEditDrop, onCreateDrop }: Props) {
                 <div className="flex-1 text-left">
                   <p className="text-sm font-semibold text-forest">{drop.flavor_name}</p>
                   <p className="text-[11px] text-forest/35">
-                    {stats.orderCount} orders · {formatCents(stats.revenue, 0)} · {new Date(drop.pickup_date).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                    {stats.orderCount} orders · {formatCents(stats.revenue, 0)} · {new Date(drop.pickup_date + "T12:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "America/El_Salvador" })}
                   </p>
                 </div>
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none">

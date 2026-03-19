@@ -1,23 +1,26 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { findActiveDrop } from "@/lib/drops/find-active";
 import { DROP_STATUS_LABELS, DROP_TRANSITIONS, formatDropNumber } from "@/lib/drops/constants";
 import { ORDER_STATUS_COLORS, ORDER_STATUS_LABELS } from "@/lib/orders/constants";
 import { formatCents, getInitials } from "@/lib/format";
-import type { Drop, Order } from "@/types/database";
+import type { Drop, Order, DropStats } from "@/types/database";
 
 interface Props {
   drops: Drop[];
   orders: Order[];
+  dropStats: DropStats[];
   onEditDrop: (drop: Drop) => void;
   onViewOrders: () => void;
   onUpdateStatus: (dropId: string, status: string) => Promise<void>;
+  onOpenShopping: (dropId: string) => void;
+  onOpenBaking: (dropId: string) => void;
 }
 
-export function HomeTab({ drops, orders, onEditDrop, onViewOrders, onUpdateStatus }: Props) {
+export function HomeTab({ drops, orders, dropStats, onEditDrop, onViewOrders, onUpdateStatus, onOpenShopping, onOpenBaking }: Props) {
   const router = useRouter();
   const [statusDropdown, setStatusDropdown] = useState<string | null>(null);
   const [showProfile, setShowProfile] = useState(false);
@@ -46,9 +49,11 @@ export function HomeTab({ drops, orders, onEditDrop, onViewOrders, onUpdateStatu
   const recentOrders = currentDrop
     ? orders.filter((o) => o.drop_id === currentDrop.id).slice(0, 5)
     : [];
-  const upcomingDrafts = drops.filter((d) => d.status === "draft");
+  const upcomingDrafts = drops.filter((d) => d.status === "draft" || d.status === "scheduled");
 
-  const today = new Date().getDay(); // 0=Sun
+  // Defer to client to avoid SSR hydration mismatch (server may be in different timezone)
+  const [today, setToday] = useState(-1); // -1 = SSR placeholder, no day highlighted
+  useEffect(() => setToday(new Date().getDay()), []);
 
   return (
     <div className="pb-24">
@@ -56,7 +61,7 @@ export function HomeTab({ drops, orders, onEditDrop, onViewOrders, onUpdateStatu
       <div className="flex items-end justify-between px-4 pt-5 pb-3">
         <div>
           <p className="text-[13px] text-forest/45">Good morning, Heidi</p>
-          <h1 className="font-display font-black text-2xl text-forest">munchis</h1>
+          <a href="/parrot/dashboard"><img src="/images/logo-wordmark.svg" alt="munchis" className="h-7" /></a>
         </div>
         <button
           onClick={async () => {
@@ -111,6 +116,8 @@ export function HomeTab({ drops, orders, onEditDrop, onViewOrders, onUpdateStatu
                     // Friendly labels for transitions
                     const isReopen = currentDrop.status === "closed" && s === "live";
                     const transitionLabels: Record<string, Record<string, string>> = {
+                      draft: { scheduled: "Schedule drop" },
+                      scheduled: { live: "Go live now", draft: "Back to draft" },
                       closed: { baking: "Start baking", live: "Reopen orders" },
                       baking: { ready: "Ready for pickup", closed: "Back to closed" },
                       ready: { completed: "Drop complete", baking: "Back to baking" },
@@ -168,34 +175,116 @@ export function HomeTab({ drops, orders, onEditDrop, onViewOrders, onUpdateStatu
         </div>
       )}
 
-      {/* Groceries toggle — visible only when orders are closed */}
-      {currentDrop && currentDrop.status === "closed" && (
-        <button
-          onClick={async () => {
-            const supabase = createClient();
-            const newValue = currentDrop.groceries_bought_at ? null : new Date().toISOString();
-            await supabase
-              .from("drops")
-              .update({ groceries_bought_at: newValue })
-              .eq("id", currentDrop.id);
-            router.refresh();
-          }}
-          className="mx-4 mt-3 flex items-center gap-3 p-3.5 rounded-xl bg-white btn-press"
-        >
-          <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition ${
-            currentDrop.groceries_bought_at
-              ? "bg-forest border-forest"
-              : "border-forest/20"
-          }`}>
-            {currentDrop.groceries_bought_at && (
-              <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                <path d="M3 6.5L5 8.5L9 4" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            )}
-          </div>
-          <span className="text-sm font-semibold text-forest">Groceries bought</span>
-        </button>
-      )}
+      {/* Shopping / Baking progress — when drop has a recipe */}
+      {currentDrop && (currentDrop.status === "closed" || currentDrop.status === "baking") && (() => {
+        const stats = dropStats.find((ds) => ds.drop_id === currentDrop.id);
+        const hasShopping = stats && stats.shopping_total > 0;
+        const hasBaking = stats && stats.baking_total > 0;
+        const hasRecipe = !!currentDrop.recipe_id;
+
+        if (hasRecipe && (hasShopping || hasBaking)) {
+          return (
+            <div className="mx-4 mt-3 space-y-2">
+              {/* Shopping progress */}
+              {hasShopping && currentDrop.status === "closed" && (
+                <button
+                  onClick={() => onOpenShopping(currentDrop.id)}
+                  className="w-full flex items-center gap-3 p-3.5 rounded-xl bg-mint/40 border border-forest/8 btn-press"
+                >
+                  <div className="w-9 h-9 rounded-full bg-forest/8 flex items-center justify-center flex-shrink-0">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                      <rect x="3" y="3" width="10" height="10" rx="2" stroke="#1B3D2F" strokeWidth="1.3" opacity="0.5" />
+                      <path d="M5.5 8l2 2 3-3.5" stroke="#1B3D2F" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" opacity="0.5" />
+                    </svg>
+                  </div>
+                  <div className="flex-1 text-left">
+                    <p className="text-sm font-semibold text-forest">Shopping list</p>
+                    <p className="text-[12px] text-forest/45">
+                      {stats!.shopping_checked}/{stats!.shopping_total} items bought
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-12 h-1.5 bg-forest/8 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-forest rounded-full"
+                        style={{ width: `${(stats!.shopping_checked / stats!.shopping_total) * 100}%` }}
+                      />
+                    </div>
+                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                      <path d="M5 3l4 4-4 4" stroke="#1B3D2F" strokeWidth="1.3" strokeLinecap="round" opacity="0.3" />
+                    </svg>
+                  </div>
+                </button>
+              )}
+
+              {/* Baking progress */}
+              {hasBaking && currentDrop.status === "baking" && (
+                <button
+                  onClick={() => onOpenBaking(currentDrop.id)}
+                  className="w-full flex items-center gap-3 p-3.5 rounded-xl bg-amber/8 border border-amber/15 btn-press"
+                >
+                  <div className="w-9 h-9 rounded-full bg-amber/15 flex items-center justify-center flex-shrink-0">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                      <circle cx="8" cy="8" r="6" stroke="#B8860B" strokeWidth="1.3" />
+                      <path d="M8 4.5V8l2.5 1.5" stroke="#B8860B" strokeWidth="1.3" strokeLinecap="round" />
+                    </svg>
+                  </div>
+                  <div className="flex-1 text-left">
+                    <p className="text-sm font-semibold text-forest">Baking plan</p>
+                    <p className="text-[12px] text-forest/45">
+                      {stats!.baking_done}/{stats!.baking_total} steps done
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-12 h-1.5 bg-amber/15 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-amber rounded-full"
+                        style={{ width: `${(stats!.baking_done / stats!.baking_total) * 100}%` }}
+                      />
+                    </div>
+                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                      <path d="M5 3l4 4-4 4" stroke="#1B3D2F" strokeWidth="1.3" strokeLinecap="round" opacity="0.3" />
+                    </svg>
+                  </div>
+                </button>
+              )}
+            </div>
+          );
+        }
+
+        // Fallback: old groceries checkbox when no recipe linked
+        if (currentDrop.status === "closed") {
+          return (
+            <button
+              onClick={async () => {
+                const supabase = createClient();
+                const newValue = currentDrop.groceries_bought_at ? null : new Date().toISOString();
+                await supabase
+                  .from("drops")
+                  .update({ groceries_bought_at: newValue })
+                  .eq("id", currentDrop.id);
+                router.refresh();
+              }}
+              className="mx-4 mt-3 flex items-center gap-3 p-3.5 rounded-xl bg-white btn-press"
+            >
+              <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition ${
+                currentDrop.groceries_bought_at
+                  ? "bg-forest border-forest"
+                  : "border-forest/20"
+              }`}>
+                {currentDrop.groceries_bought_at && (
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                    <path d="M3 6.5L5 8.5L9 4" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                )}
+              </div>
+              <span className="text-sm font-semibold text-forest">Groceries bought</span>
+            </button>
+          );
+        }
+
+        return null;
+      })()}
 
       {/* Stats */}
       {currentDrop && (
@@ -299,7 +388,9 @@ export function HomeTab({ drops, orders, onEditDrop, onViewOrders, onUpdateStatu
               </div>
               <div className="flex-1 text-left">
                 <p className="text-sm font-semibold text-forest">{draft.flavor_name}</p>
-                <p className="text-[11px] text-forest/35">Draft · Scheduled {new Date(draft.pickup_date).toLocaleDateString("en-US", { month: "short", day: "numeric" })}</p>
+                <p className="text-[11px] text-forest/35">
+                  {draft.status === "scheduled" ? "Scheduled" : "Draft"} · {new Date(draft.pickup_date + "T12:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                </p>
               </div>
               <span className="text-[11px] font-semibold text-forest/30">Edit</span>
             </button>

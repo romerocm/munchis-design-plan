@@ -12,7 +12,7 @@ import { HowItWorks } from "./how-it-works";
 import { Footer } from "./footer";
 import { BakingTimeline } from "../shared/baking-timeline";
 import { formatDropNumber } from "@/lib/drops/constants";
-import { formatCents, formatDay } from "@/lib/format";
+import { formatCents, formatDay, utcToCST } from "@/lib/format";
 import type { Drop } from "@/types/database";
 
 interface Props {
@@ -37,13 +37,15 @@ export function DesktopDropPage({ drop, remaining, nextDrop }: Props) {
     <div className="min-h-screen bg-cream flex flex-col gap-4 pb-12">
       {/* Nav */}
       <nav className={`flex items-center justify-between py-5 ${cx}`}>
-        <Image
-          src="/images/logo-wordmark.svg"
-          alt="munchis"
-          width={140}
-          height={40}
-          className="h-8 w-auto"
-        />
+        <a href="/">
+          <Image
+            src="/images/logo-wordmark.svg"
+            alt="munchis"
+            width={140}
+            height={40}
+            className="h-8 w-auto"
+          />
+        </a>
         <div className="flex items-center gap-4">
           <a
             href="#meet-heidi"
@@ -55,16 +57,31 @@ export function DesktopDropPage({ drop, remaining, nextDrop }: Props) {
           >
             About
           </a>
-          {isLive && (
+          {isLive && remaining > 0 && (
             <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-green-accent/8 border border-green-accent/20">
               <div className="w-2 h-2 rounded-full bg-green-accent animate-pulse" />
               <span className="text-[13px] font-semibold text-forest">DROP LIVE</span>
             </div>
           )}
+          {isLive && remaining <= 0 && (
+            <div className="px-3.5 py-1.5 rounded-full border border-amber/30 bg-amber/8">
+              <span className="text-xs font-semibold text-amber">SOLD OUT</span>
+            </div>
+          )}
+          {(!drop || drop.status === "draft" || drop.status === "scheduled") && (
+            <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-forest/10">
+              <div className="w-1.5 h-1.5 rounded-full bg-amber" />
+              <span className="text-xs font-semibold text-forest/50">COMING SOON</span>
+            </div>
+          )}
           {isClosed && (
             <div className={`px-3.5 py-1.5 rounded-full border ${remaining === 0 ? "border-amber/30 bg-amber/8" : "border-forest/10"}`}>
               <span className={`text-xs font-semibold ${remaining === 0 ? "text-amber" : "text-forest/50"}`}>
-                {drop?.status === "ready" ? "READY FOR PICKUP" : remaining === 0 ? "SOLD OUT" : "ORDERS CLOSED"}
+                {drop?.status === "ready" && utcToCST(new Date().toISOString()).date >= drop.pickup_date
+                  ? "READY FOR PICKUP"
+                  : drop?.status === "ready"
+                  ? "BAKING DONE"
+                  : remaining === 0 ? "SOLD OUT" : "ORDERS CLOSED"}
               </span>
             </div>
           )}
@@ -92,6 +109,29 @@ export function DesktopDropPage({ drop, remaining, nextDrop }: Props) {
               </div>
               {/* CTA + Countdown + Scarcity — tightly coupled (Fitts' Law) */}
               <div className="flex flex-col gap-4 pt-2">
+                {remaining <= 0 ? (
+                  <>
+                    {/* Scarcity bar — full, pulsing amber */}
+                    <div className="flex flex-col gap-1.5 max-w-[280px]">
+                      <div className="h-1.5 rounded-full bg-forest/6 w-full overflow-hidden">
+                        <div className="h-full rounded-full bg-amber w-full" />
+                      </div>
+                      <span className="text-xs font-semibold text-amber">{drop.capacity} of {drop.capacity} claimed — sold out</span>
+                    </div>
+                    {/* FOMO nudge + inline notify */}
+                    <div className="flex flex-col gap-3 max-w-[340px]">
+                      <p className="text-sm text-forest/50">
+                        This drop went fast. Get a heads-up next time so you don&apos;t miss out.
+                      </p>
+                      <NotifyForm
+                        dropId={drop.id}
+                        subtitle="Be first in line for the next drop"
+                        bgClass="bg-forest/[0.04] border border-forest/10"
+                      />
+                    </div>
+                  </>
+                ) : (
+                <>
                 <div className="flex items-center gap-4">
                   <button
                     onClick={() => setShowOrder(true)}
@@ -120,6 +160,8 @@ export function DesktopDropPage({ drop, remaining, nextDrop }: Props) {
                     />
                   </div>
                 </div>
+                </>
+                )}
               </div>
             </div>
             {/* Right image */}
@@ -140,19 +182,22 @@ export function DesktopDropPage({ drop, remaining, nextDrop }: Props) {
       )}
 
       {/* Pre-Drop hero */}
-      {(!drop || drop.status === "draft") && (
+      {(!drop || drop.status === "draft" || drop.status === "scheduled") && (
         <div className={cx}>
           <div className="flex rounded-[28px] overflow-hidden min-h-[400px] bg-forest/[0.03] items-center justify-center">
             <div className="text-center max-w-lg px-8">
-              <p className="text-xs font-semibold text-forest/30 uppercase tracking-wider mb-3">NEXT DROP</p>
-              <h1 className="font-display font-black text-4xl text-forest mb-4">
-                Handmade treats, baked fresh every Sunday
+              <p className="text-xs font-semibold text-amber uppercase tracking-wider mb-3">LIMITED BATCH</p>
+              <h1 className="font-display font-black text-4xl text-forest mb-3">
+                Something sweet is coming
               </h1>
-              {drop && (
+              <p className="text-[15px] text-forest/45 leading-relaxed max-w-[380px] mx-auto mb-2">
+                Small-batch, handmade treats. Each drop sells out fast — be the first to know when orders open.
+              </p>
+              {drop?.status === "scheduled" && (
                 <CountdownTimer targetDate={drop.orders_open_at} label="OPENS IN" />
               )}
               <div className="mt-6 max-w-sm mx-auto">
-                <NotifyForm dropId={drop?.id} subtitle="Get a WhatsApp message when the drop goes live" />
+                <NotifyForm dropId={drop?.id} subtitle="Get notified before it's gone" />
               </div>
             </div>
           </div>
@@ -162,10 +207,15 @@ export function DesktopDropPage({ drop, remaining, nextDrop }: Props) {
       {/* Closed/Baking hero — warm baking journey (Peak-End Rule + Goal-Gradient) */}
       {isClosed && drop && (() => {
         const soldOut = remaining === 0;
+        const todayCST = utcToCST(new Date().toISOString()).date;
+        const isPickupDay = todayCST >= drop.pickup_date;
+        const pickupDay = formatDay(drop.pickup_date);
         const heading = drop.status === "baking"
           ? "We\u2019re baking your treats right now"
-          : drop.status === "ready"
+          : drop.status === "ready" && isPickupDay
           ? "Ready for pickup!"
+          : drop.status === "ready"
+          ? "Fresh out of the oven!"
           : drop.status === "completed"
           ? "Drop complete!"
           : soldOut
@@ -173,8 +223,10 @@ export function DesktopDropPage({ drop, remaining, nextDrop }: Props) {
           : "Orders are closed";
         const body = drop.status === "baking"
           ? "Every batch handmade from scratch by Heidi. Your treats will be ready for pickup soon."
-          : drop.status === "ready"
+          : drop.status === "ready" && isPickupDay
           ? `Your treats are ready! Head to ${drop.pickup_location} to pick up your order.`
+          : drop.status === "ready"
+          ? `Your treats are baked and beautiful! Pickup is ${pickupDay} at ${drop.pickup_location}. Almost there!`
           : drop.status === "completed"
           ? `All ${orderedCount} orders picked up. Thanks for being part of this drop!`
           : soldOut
@@ -207,12 +259,12 @@ export function DesktopDropPage({ drop, remaining, nextDrop }: Props) {
       })()}
 
       {/* Marquee — show when ordering is possible */}
-      {(isLive || (!drop || drop.status === "draft")) && (
+      {(isLive || (!drop || drop.status === "draft" || drop.status === "scheduled")) && (
         <MarqueeStrip />
       )}
 
       {/* How It Works — full version for both live and pre-drop */}
-      {(isLive || (!drop || drop.status === "draft")) && (
+      {(isLive || (!drop || drop.status === "draft" || drop.status === "scheduled")) && (
         <div className={cx}>
           <HowItWorks />
         </div>

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@/lib/supabase/server";
 import { verifyAuth } from "@/lib/auth/verify";
 import { DROP_DEFAULTS } from "@/lib/drops/constants";
+import { cstToUTC } from "@/lib/format";
 
 // Create a new drop
 export async function POST(req: NextRequest) {
@@ -34,10 +35,12 @@ export async function POST(req: NextRequest) {
 
   const nextThursday = new Date(nextMonday);
   nextThursday.setDate(nextThursday.getDate() + 3);
-  nextThursday.setHours(23, 59, 0, 0);
 
   const nextSunday = new Date(nextMonday);
   nextSunday.setDate(nextSunday.getDate() + 6);
+
+  // Format dates as YYYY-MM-DD for CST construction
+  const fmtDate = (d: Date) => d.toLocaleDateString("en-CA", { timeZone: "America/El_Salvador" });
 
   const { data, error } = await supabase
     .from("drops")
@@ -50,11 +53,11 @@ export async function POST(req: NextRequest) {
       price_cents: body.price_cents || latest?.price_cents || DROP_DEFAULTS.price_cents,
       capacity: body.capacity || latest?.capacity || DROP_DEFAULTS.capacity,
       pickup_location: body.pickup_location || latest?.pickup_location || DROP_DEFAULTS.pickup_location,
-      pickup_date: body.pickup_date || nextSunday.toISOString().split("T")[0],
+      pickup_date: body.pickup_date || fmtDate(nextSunday),
       pickup_time_start: body.pickup_time_start || latest?.pickup_time_start || DROP_DEFAULTS.pickup_time_start,
       pickup_time_end: body.pickup_time_end || latest?.pickup_time_end || DROP_DEFAULTS.pickup_time_end,
-      orders_open_at: body.orders_open_at || nextMonday.toISOString(),
-      orders_close_at: body.orders_close_at || nextThursday.toISOString(),
+      orders_open_at: body.orders_open_at || cstToUTC(fmtDate(nextMonday), "08:00"),
+      orders_close_at: body.orders_close_at || cstToUTC(fmtDate(nextThursday), "23:59"),
       hero_image_url: body.hero_image_url || null,
       flavor_image_url: body.flavor_image_url || null,
     })
@@ -86,10 +89,12 @@ export async function PATCH(req: NextRequest) {
     "flavor_name", "flavor_description", "flavor_color", "price_cents",
     "capacity", "pickup_location", "pickup_date", "pickup_time_start",
     "pickup_time_end", "orders_open_at", "orders_close_at",
-    "hero_image_url", "flavor_image_url", "status",
+    "hero_image_url", "flavor_image_url", "status", "recipe_id",
   ];
   const sanitized = Object.fromEntries(
-    Object.entries(updates).filter(([k]) => ALLOWED_FIELDS.includes(k))
+    Object.entries(updates)
+      .filter(([k]) => ALLOWED_FIELDS.includes(k))
+      .map(([k, v]) => [k, v === "" ? null : v])  // convert empty strings to null for UUID fields
   );
 
   const { data, error } = await supabase
