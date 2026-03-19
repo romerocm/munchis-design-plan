@@ -133,7 +133,8 @@ describe("twilio/templates", () => {
         })
       );
 
-      expect(result["1"]).toBe("2026-03-22");
+      expect(result["1"]).toBe("domingo, 22 de marzo");
+      expect(result["2"]).toBe("2:00 PM");
       expect(result["4"]).toBe("5× Chocolate Chip");
       expect(result["5"]).toBe("Multiplaza%2C%20entrada%20principal");
     });
