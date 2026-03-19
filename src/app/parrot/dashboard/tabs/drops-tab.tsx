@@ -52,38 +52,52 @@ export function DropsTab({ drops, orders, onEditDrop, onCreateDrop }: Props) {
       </div>
 
       {/* This week */}
-      {liveDrop && (
-        <>
-          <p className="text-[11px] font-semibold text-forest/30 uppercase tracking-wider px-4 mb-2">This week</p>
-          <div
-            onClick={() => onEditDrop(liveDrop)}
-            className="flex items-center gap-3.5 mx-4 p-4 rounded-2xl bg-forest cursor-pointer btn-press"
-          >
-            <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center flex-shrink-0 overflow-hidden">
-              {liveDrop.flavor_image_url ? (
-                <img src={liveDrop.flavor_image_url} alt="" className="w-full h-full object-cover" />
-              ) : (
-                <span className="text-[10px] text-white/30">photo</span>
-              )}
-            </div>
-            <div className="flex-1 text-left">
-              <div className="flex items-center gap-2">
-                <span className="text-[15px] font-semibold text-white">{liveDrop.flavor_name}</span>
-                <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/12 text-[10px] font-semibold text-white uppercase">
-                  <span className="w-1 h-1 rounded-full bg-green-400" />
-                  {liveDrop.status}
-                </span>
+      {liveDrop && (() => {
+        const liveStats = getDropStats(liveDrop);
+        return (
+          <>
+            <p className="text-[11px] font-semibold text-forest/30 uppercase tracking-wider px-4 mb-2">This week</p>
+            <button
+              onClick={() => onEditDrop(liveDrop)}
+              className="w-[calc(100%-2rem)] mx-4 flex items-center gap-3.5 p-3.5 rounded-2xl bg-white border border-forest/8 btn-press"
+            >
+              <div className="w-12 h-12 rounded-xl bg-forest/5 flex items-center justify-center flex-shrink-0 overflow-hidden">
+                {liveDrop.flavor_image_url ? (
+                  <img src={liveDrop.flavor_image_url} alt="" className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-[10px] text-forest/30">photo</span>
+                )}
               </div>
-              <p className="text-xs text-white/40 mt-0.5">
-                Drop {formatDropNumber(liveDrop.number)} · {getDropStats(liveDrop).orderCount} orders · {formatCents(getDropStats(liveDrop).revenue, 0)} · {liveDrop.pickup_location}
-              </p>
-              <p className="text-[11px] text-white/25 mt-0.5">
-                Closes {new Date(liveDrop.orders_close_at).toLocaleDateString("en-US", { weekday: "short", timeZone: "America/El_Salvador" })} midnight
-              </p>
+              <div className="flex-1 text-left">
+                <div className="flex items-center gap-2">
+                  <span className="text-[15px] font-semibold text-forest">{liveDrop.flavor_name}</span>
+                  <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-forest/8 text-[10px] font-semibold text-forest/60 uppercase">
+                    <span className={`w-1.5 h-1.5 rounded-full ${liveDrop.status === "live" ? "bg-green-500 animate-pulse" : "bg-forest/30"}`} />
+                    {liveDrop.status}
+                  </span>
+                </div>
+                <p className="text-xs text-forest/40 mt-0.5">
+                  Drop {formatDropNumber(liveDrop.number)} · {liveDrop.pickup_location} · Closes {new Date(liveDrop.orders_close_at).toLocaleDateString("en-US", { weekday: "short", timeZone: "America/El_Salvador" })}
+                </p>
+              </div>
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <path d="M6 4l4 4-4 4" stroke="#1B3D2F" strokeWidth="1.5" strokeLinecap="round" opacity="0.2" />
+              </svg>
+            </button>
+            {/* Current drop stats */}
+            <div className="flex gap-2 mx-4 mt-2">
+              <div className="flex-1 p-3 rounded-xl bg-white">
+                <p className="font-display font-black text-lg text-forest">{liveStats.orderCount}</p>
+                <p className="text-[10px] text-forest/35">Orders</p>
+              </div>
+              <div className="flex-1 p-3 rounded-xl bg-white">
+                <p className="font-display font-black text-lg text-amber">{formatCents(liveStats.revenue, 0)}</p>
+                <p className="text-[10px] text-forest/35">Revenue</p>
+              </div>
             </div>
-          </div>
-        </>
-      )}
+          </>
+        );
+      })()}
 
       {/* Scheduled drafts */}
       {drafts.length > 0 && (
@@ -119,6 +133,16 @@ export function DropsTab({ drops, orders, onEditDrop, onCreateDrop }: Props) {
 
       {/* Past drops */}
       <p className="text-[11px] font-semibold text-forest/30 uppercase tracking-wider px-4 mt-5 mb-2">Past drops</p>
+      {completed.length > 0 && (() => {
+        const allStats = completed.map(getDropStats);
+        const totalOrders = allStats.reduce((sum, s) => sum + s.orderCount, 0);
+        const totalRevenue = allStats.reduce((sum, s) => sum + s.revenue, 0);
+        return (
+          <p className="text-[12px] text-forest/35 px-4 -mt-1 mb-2.5">
+            {completed.length} drops · {totalOrders} orders · {formatCents(totalRevenue, 0)} earned
+          </p>
+        );
+      })()}
       {completed.length === 0 ? (
         <div className="mx-4 py-6 rounded-xl bg-forest/3 text-center">
           <p className="text-[13px] text-forest/25">No completed drops yet. Your first one is live!</p>
@@ -131,10 +155,14 @@ export function DropsTab({ drops, orders, onEditDrop, onCreateDrop }: Props) {
               <button
                 key={drop.id}
                 onClick={() => onEditDrop(drop)}
-                className="w-full flex items-center gap-3 p-3.5 rounded-xl bg-white btn-press opacity-60"
+                className="w-full flex items-center gap-3 p-3.5 rounded-xl bg-white btn-press"
               >
-                <div className="w-11 h-11 rounded-xl bg-forest/5 flex items-center justify-center flex-shrink-0">
-                  <span className="text-[11px] font-bold text-forest/30">{formatDropNumber(drop.number)}</span>
+                <div className="w-11 h-11 rounded-xl bg-forest/5 flex items-center justify-center flex-shrink-0 overflow-hidden">
+                  {drop.flavor_image_url ? (
+                    <img src={drop.flavor_image_url} alt="" className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="text-[11px] font-bold text-forest/30">{formatDropNumber(drop.number)}</span>
+                  )}
                 </div>
                 <div className="flex-1 text-left">
                   <p className="text-sm font-semibold text-forest">{drop.flavor_name}</p>
