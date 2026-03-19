@@ -1,0 +1,38 @@
+name: Tests
+
+on:
+  pull_request:
+    branches: [trunk, main]
+  push:
+    branches: [trunk, main]
+
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  unit-and-integration:
+    name: Unit / Component / Integration
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - name: Run unit tests
+        run: npm run test:unit
+
+      - name: Run component tests
+        run: npm run test:component
+
+      - name: Run integration tests
+        run: npm run test:integration
+
+  # E2E disabled — re-enable when we have a seeded test database
+  # or Supabase branching so tests control data state.
+  # See: e2e/ directory for Playwright specs (kept for local use).

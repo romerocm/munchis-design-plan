@@ -49,7 +49,9 @@ export function utcToCST(isoStr: string): { date: string; time: string } {
   const parts = d.toLocaleString("en-CA", { timeZone: "America/El_Salvador", hour12: false }).split(", ");
   // en-CA gives "YYYY-MM-DD, HH:MM:SS"
   const date = parts[0]; // "2026-03-19"
-  const time = (parts[1] || "00:00:00").slice(0, 5); // "23:59"
+  const rawTime = (parts[1] || "00:00:00").slice(0, 5);
+  // Some locales return "24:00" for midnight — normalize to "00:00"
+  const time = rawTime === "24:00" ? "00:00" : rawTime;
   return { date, time };
 }
 
