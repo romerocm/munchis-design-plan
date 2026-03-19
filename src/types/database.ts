@@ -114,8 +114,31 @@ export interface Order {
   picked_up_at: string | null;
   wompi_payment_id: string | null;
   wompi_payment_link: string | null;
+  reminder_sent_at: string | null;
   created_at: string;
   updated_at: string;
+}
+
+export type WhatsappMessageStatus = "queued" | "sent" | "delivered" | "read" | "failed" | "undelivered";
+
+export interface WhatsappMessage {
+  id: string;
+  order_id: string | null;
+  drop_id: string | null;
+  recipient: string;
+  template_name: string;
+  content_sid: string;
+  twilio_sid: string | null;
+  status: WhatsappMessageStatus;
+  error_message: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface WhatsappOptOut {
+  id: string;
+  whatsapp: string;
+  opted_out_at: string;
 }
 
 export interface NotifyListEntry {
@@ -187,6 +210,16 @@ export interface Database {
         Row: DropBakingStep;
         Insert: Omit<DropBakingStep, "id" | "created_at">;
         Update: Partial<Omit<DropBakingStep, "id" | "created_at">>;
+      };
+      whatsapp_messages: {
+        Row: WhatsappMessage;
+        Insert: Omit<WhatsappMessage, "id" | "created_at" | "updated_at">;
+        Update: Partial<Omit<WhatsappMessage, "id" | "created_at" | "updated_at">>;
+      };
+      whatsapp_opt_outs: {
+        Row: WhatsappOptOut;
+        Insert: Omit<WhatsappOptOut, "id" | "opted_out_at">;
+        Update: Partial<Omit<WhatsappOptOut, "id" | "opted_out_at">>;
       };
     };
     Views: {

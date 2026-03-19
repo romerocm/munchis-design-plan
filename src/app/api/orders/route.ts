@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@/lib/supabase/server";
 import { createPaymentLink } from "@/lib/wompi/client";
 import { MAX_ORDER_QUANTITY, PAYMENT_WINDOW_MS } from "@/lib/orders/constants";
+import { sendWhatsApp } from "@/lib/twilio/client";
+import { buildOrderReceivedVars, formatCentsToDollars } from "@/lib/twilio/templates";
 
 export async function POST(req: NextRequest) {
   const supabase = createServerClient();
@@ -122,6 +124,21 @@ export async function POST(req: NextRequest) {
       { status: 500 }
     );
   }
+
+  // Fire-and-forget: send order received WhatsApp notification
+  sendWhatsApp({
+    to: whatsappClean,
+    templateName: "order_received",
+    variables: buildOrderReceivedVars({
+      customerName: nameClean,
+      quantity: qty,
+      flavorName: drop.flavor_name,
+      totalFormatted: formatCentsToDollars(totalCents),
+      paymentId: paymentLink.paymentId,
+    }),
+    orderId: orderId as string,
+    dropId: drop_id,
+  }).catch((err) => console.error("WhatsApp order_received failed:", err));
 
   return NextResponse.json({
     order_id: orderId,

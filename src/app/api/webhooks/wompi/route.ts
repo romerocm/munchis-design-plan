@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@/lib/supabase/server";
 import { isSandbox, verifyWompiSignature } from "@/lib/wompi/client";
+import { sendWhatsApp } from "@/lib/twilio/client";
+import {
+  buildPaymentConfirmedVars,
+  buildOrderCancelledVars,
+} from "@/lib/twilio/templates";
 
 export async function POST(req: NextRequest) {
   const supabase = createServerClient();
@@ -42,29 +47,85 @@ export async function POST(req: NextRequest) {
   if (event === "transaction.updated" && paymentLinkId) {
     if (status === "APPROVED") {
       // Confirm order. Idempotent: .eq("status", "pending") prevents double-processing
-      const { error } = await supabase
+      const { data: updatedOrders, error } = await supabase
         .from("orders")
         .update({
           status: "confirmed",
           paid_at: new Date().toISOString(),
         })
         .eq("wompi_payment_id", paymentLinkId)
-        .eq("status", "pending");
+        .eq("status", "pending")
+        .select("id, customer_name, customer_whatsapp, quantity, drop_id");
 
       if (error) {
         console.error("Failed to confirm order:", error);
         return NextResponse.json({ error: "Update failed" }, { status: 500 });
       }
+
+      // Send payment confirmed WhatsApp (fire-and-forget)
+      if (updatedOrders?.[0]) {
+        const order = updatedOrders[0];
+        const { data: drop } = await supabase
+          .from("drops")
+          .select("flavor_name, pickup_date, pickup_time_start, pickup_location")
+          .eq("id", order.drop_id)
+          .single();
+
+        if (drop) {
+          sendWhatsApp({
+            to: order.customer_whatsapp,
+            templateName: "payment_confirmed",
+            variables: buildPaymentConfirmedVars({
+              customerName: order.customer_name,
+              pickupDate: drop.pickup_date,
+              pickupTime: drop.pickup_time_start,
+              pickupLocation: drop.pickup_location,
+              quantity: order.quantity,
+              flavorName: drop.flavor_name,
+              mapQuery: encodeURIComponent(drop.pickup_location),
+            }),
+            orderId: order.id,
+            dropId: order.drop_id,
+          }).catch((err) => console.error("WhatsApp payment_confirmed failed:", err));
+        }
+      }
     } else if (status === "DECLINED" || status === "VOIDED" || status === "ERROR") {
       // Free capacity by expiring the declined order
-      const { error } = await supabase
+      const { data: updatedOrders, error } = await supabase
         .from("orders")
         .update({ status: "expired" })
         .eq("wompi_payment_id", paymentLinkId)
-        .eq("status", "pending");
+        .eq("status", "pending")
+        .select("id, customer_name, customer_whatsapp, drop_id");
 
       if (error) {
         console.error("Failed to expire declined order:", error);
+      }
+
+      // Send order cancelled WhatsApp (fire-and-forget)
+      if (updatedOrders?.[0]) {
+        const order = updatedOrders[0];
+        const { data: drop } = await supabase
+          .from("drops")
+          .select("flavor_name, orders_close_at")
+          .eq("id", order.drop_id)
+          .single();
+
+        if (drop) {
+          const closeDate = new Date(drop.orders_close_at);
+          const closeDay = closeDate.toLocaleDateString("es-SV", { weekday: "long" });
+          sendWhatsApp({
+            to: order.customer_whatsapp,
+            templateName: "order_cancelled",
+            variables: buildOrderCancelledVars({
+              customerName: order.customer_name,
+              flavorName: drop.flavor_name,
+              closeDay,
+            }),
+            orderId: order.id,
+            dropId: order.drop_id,
+          }).catch((err) => console.error("WhatsApp order_cancelled failed:", err));
+        }
       }
     }
   }
