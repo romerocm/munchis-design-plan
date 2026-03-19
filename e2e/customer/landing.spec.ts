@@ -8,14 +8,22 @@ test.describe("Customer Landing Page", () => {
     await page.goto("/");
     await page.waitForLoadState("networkidle");
 
-    // No critical JS errors
+    // No critical JS errors (ignore hydration warnings)
     expect(errors.filter((e) => !e.includes("hydration"))).toEqual([]);
   });
 
   test("shows munchis branding", async ({ page }) => {
     await page.goto("/");
-    // The brand name should be visible somewhere on the page
-    await expect(page.getByText(/munchis/i).first()).toBeVisible();
+    await page.waitForLoadState("networkidle");
+
+    // Brand name may be in text, an image alt, or a title
+    const brandText = page.getByText(/munchis/i).first();
+    const brandImg = page.getByAltText(/munchis/i).first();
+
+    const textVisible = await brandText.isVisible({ timeout: 3_000 }).catch(() => false);
+    const imgVisible = await brandImg.isVisible({ timeout: 1_000 }).catch(() => false);
+
+    expect(textVisible || imgVisible).toBe(true);
   });
 
   test("renders content within reasonable time", async ({ page }) => {
@@ -23,7 +31,6 @@ test.describe("Customer Landing Page", () => {
     await page.goto("/");
     await page.waitForLoadState("domcontentloaded");
     const elapsed = Date.now() - start;
-    // Page should load within 10 seconds
     expect(elapsed).toBeLessThan(10_000);
   });
 });
@@ -36,7 +43,6 @@ test.describe("Responsive Layout", () => {
     await page.goto("/");
     await page.waitForLoadState("networkidle");
 
-    // Mobile layout should be visible (the lg:hidden element)
     const mobileContent = page.locator(".lg\\:hidden").first();
     if (await mobileContent.count() > 0) {
       await expect(mobileContent).toBeVisible();
@@ -48,7 +54,6 @@ test.describe("Responsive Layout", () => {
     await page.goto("/");
     await page.waitForLoadState("networkidle");
 
-    // Desktop layout should be visible (the hidden lg:block element)
     const desktopContent = page.locator(".hidden.lg\\:block, .hidden.lg\\:flex").first();
     if (await desktopContent.count() > 0) {
       await expect(desktopContent).toBeVisible();
