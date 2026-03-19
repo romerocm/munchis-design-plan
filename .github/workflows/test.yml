@@ -1,0 +1,76 @@
+name: Tests
+
+on:
+  pull_request:
+    branches: [trunk, main]
+  push:
+    branches: [trunk, main]
+
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  unit-and-integration:
+    name: Unit / Component / Integration
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - name: Run unit tests
+        run: npm run test:unit
+
+      - name: Run component tests
+        run: npm run test:component
+
+      - name: Run integration tests
+        run: npm run test:integration
+
+  e2e:
+    name: E2E (${{ matrix.project }})
+    runs-on: ubuntu-latest
+    needs: unit-and-integration
+    strategy:
+      fail-fast: false
+      matrix:
+        project: [desktop-chrome, mobile-chrome, mobile-safari]
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
+      SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+      BAKER_EMAIL: ${{ secrets.BAKER_EMAIL }}
+      BAKER_PASSWORD: ${{ secrets.BAKER_PASSWORD }}
+      WOMPI_SANDBOX: "true"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps ${{ matrix.project == 'mobile-safari' && 'webkit' || 'chromium' }}
+
+      - name: Build Next.js
+        run: npm run build
+
+      - name: Run E2E tests
+        run: npx playwright test --config e2e/playwright.config.ts --project=${{ matrix.project }}
+
+      - name: Upload test report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-${{ matrix.project }}
+          path: playwright-report/
+          retention-days: 7
