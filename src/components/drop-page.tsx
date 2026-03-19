@@ -6,9 +6,10 @@ import Image from "next/image";
 import { CountdownTimer } from "./shared/countdown-timer";
 import { NotifyForm } from "./shared/notify-form";
 import { NextDropCard } from "./shared/next-drop-card";
+import { BakingTimeline } from "./shared/baking-timeline";
 import { OrderSheet } from "./order-sheet";
 import { formatDropNumber } from "@/lib/drops/constants";
-import { formatCents, formatDay, formatDayOffset } from "@/lib/format";
+import { formatCents, formatDay, formatDayOffset, utcToCST } from "@/lib/format";
 import type { Drop } from "@/types/database";
 
 /*
@@ -65,18 +66,23 @@ export function DropPage({ drop, remaining, nextDrop }: DropPageProps) {
 
   const screenAnim = direction === "forward" ? "animate-fade-slide-in" : "animate-fade-slide-back";
 
-  // ─── NO DROP or DRAFT: Pre-Drop Countdown (artboard 6S-0) ───
-  if (!drop || drop.status === "draft") {
+  // ─── NO DROP, DRAFT, or SCHEDULED: Pre-Drop / Coming Soon ───
+  if (!drop || drop.status === "draft" || drop.status === "scheduled") {
+    // Scheduled drops show countdown; drafts show generic "Coming soon"
+    const showCountdown = drop?.status === "scheduled";
+
     return (
       <main className="min-h-screen w-full max-w-lg mx-auto bg-cream flex flex-col">
         <nav className="flex items-center justify-between px-4 py-4">
-          <Image
-            src="/images/logo-wordmark.svg"
-            alt="munchis"
-            width={120}
-            height={34}
-            className="h-7 w-auto"
-          />
+          <a href="/">
+            <Image
+              src="/images/logo-wordmark.svg"
+              alt="munchis"
+              width={120}
+              height={34}
+              className="h-7 w-auto"
+            />
+          </a>
           <div className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-forest/10">
             <div className="w-1.5 h-1.5 rounded-full bg-amber" />
             <span className="text-xs font-semibold text-forest/50">
@@ -94,13 +100,16 @@ export function DropPage({ drop, remaining, nextDrop }: DropPageProps) {
         </div>
 
         <div className="px-4 pt-5 flex-1">
-          <p className="text-xs font-medium text-forest/40 uppercase tracking-wider mb-2">
-            NEXT DROP
+          <p className="text-xs font-semibold text-amber uppercase tracking-wider mb-2">
+            LIMITED BATCH
           </p>
-          <h2 className="font-display font-black text-[28px] leading-tight text-forest mb-3">
-            Handmade treats, baked fresh every Sunday
+          <h2 className="font-display font-black text-[28px] leading-tight text-forest mb-2">
+            Something sweet is coming
           </h2>
-          {drop && (
+          <p className="text-sm text-forest/45 leading-relaxed mb-4">
+            Small-batch, handmade treats. Each drop sells out fast — be the first to know when orders open.
+          </p>
+          {showCountdown && drop && (
             <div className="flex items-center gap-2 text-sm text-forest/50 mb-6">
               <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
                 <path
@@ -114,7 +123,7 @@ export function DropPage({ drop, remaining, nextDrop }: DropPageProps) {
           )}
         </div>
 
-        {drop && (
+        {showCountdown && drop && (
           <div className="px-4 pb-4">
             <CountdownTimer
               targetDate={drop.orders_open_at}
@@ -126,7 +135,7 @@ export function DropPage({ drop, remaining, nextDrop }: DropPageProps) {
         <div className="px-4 pb-8">
           <NotifyForm
             dropId={drop?.id}
-            subtitle="Get a WhatsApp message the moment the drop goes live"
+            subtitle="Get notified before it's gone"
           />
         </div>
       </main>
@@ -147,12 +156,20 @@ export function DropPage({ drop, remaining, nextDrop }: DropPageProps) {
     const pickupDay = formatDay(drop.pickup_date);
 
     const soldOut = remaining === 0;
+    // Check if pickup day has arrived (in El Salvador timezone)
+    const todayCST = utcToCST(new Date().toISOString()).date;
+    const isPickupDay = todayCST >= drop.pickup_date;
+    const readyAndPickupDay = drop.status === "ready" && isPickupDay;
+    const readyButEarly = drop.status === "ready" && !isPickupDay;
+
     const statusMessages: Record<string, string> = {
       closed: soldOut
         ? `All ${drop.capacity} spots claimed! We're getting fresh ingredients ${ingredientsDay} and baking everything by hand on ${bakingDay}.`
         : `We're buying fresh ingredients ${ingredientsDay} and baking everything by hand on ${bakingDay}. All made from scratch, just for you.`,
       baking: `Your treats are being baked fresh right now! Heidi is in the kitchen making everything from scratch for ${pickupDay} pickup.`,
-      ready: `Your treats are ready! Head to ${drop.pickup_location} on ${pickupDay} to pick up your order.`,
+      ready: readyAndPickupDay
+        ? `Your treats are ready! Head to ${drop.pickup_location} on ${pickupDay} to pick up your order.`
+        : `Your treats are baked and beautiful! Pickup is ${pickupDay} at ${drop.pickup_location}. Almost there!`,
       completed: `Drop ${formatDropNumber(drop.number)} is complete! ${orderedCount} orders, all handmade. Stay tuned for the next flavor.`,
     };
 
@@ -160,14 +177,18 @@ export function DropPage({ drop, remaining, nextDrop }: DropPageProps) {
       ? "Sold out!"
       : drop.status === "baking"
       ? "We\u2019re baking your treats"
-      : drop.status === "ready"
+      : readyAndPickupDay
       ? "Ready for pickup!"
+      : readyButEarly
+      ? "Fresh out of the oven!"
       : drop.status === "completed"
       ? "Drop complete!"
       : "Orders are closed";
 
-    const navBadge = drop.status === "ready"
+    const navBadge = readyAndPickupDay
       ? "READY FOR PICKUP"
+      : readyButEarly
+      ? "BAKING DONE"
       : drop.status === "closed" && soldOut
       ? "SOLD OUT"
       : "ORDERS CLOSED";
@@ -175,13 +196,15 @@ export function DropPage({ drop, remaining, nextDrop }: DropPageProps) {
     return (
       <main className="min-h-screen w-full max-w-lg mx-auto bg-cream flex flex-col">
         <nav className="flex items-center justify-between px-4 py-4">
-          <Image
-            src="/images/logo-wordmark.svg"
-            alt="munchis"
-            width={120}
-            height={34}
-            className="h-7 w-auto"
-          />
+          <a href="/">
+            <Image
+              src="/images/logo-wordmark.svg"
+              alt="munchis"
+              width={120}
+              height={34}
+              className="h-7 w-auto"
+            />
+          </a>
           <div className={`px-3 py-1.5 rounded-full border ${soldOut ? "border-amber/30 bg-amber/8" : "border-forest/10"}`}>
             <span className={`text-xs font-semibold ${soldOut ? "text-amber" : "text-forest/50"}`}>
               {navBadge}
@@ -189,7 +212,21 @@ export function DropPage({ drop, remaining, nextDrop }: DropPageProps) {
           </div>
         </nav>
 
-        <div className="px-4 pt-4 flex-1">
+        {/* Hero image */}
+        <div className="mx-4 rounded-2xl overflow-hidden bg-forest/5 aspect-[342/200] relative">
+          <img
+            src={drop.hero_image_url || "/images/hero-cookies.jpg"}
+            alt={drop.flavor_name}
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+          <div className="absolute bottom-3 left-3 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-forest/85 backdrop-blur-sm">
+            <span className="text-[11px] font-semibold text-white tracking-wide">
+              {drop.flavor_name}
+            </span>
+          </div>
+        </div>
+
+        <div className="px-4 pt-4">
           <div className="flex items-center gap-2 mb-4">
             <div className={`px-3 py-1.5 rounded-full ${soldOut ? "bg-amber/10" : "bg-forest/8"}`}>
               <span className={`text-xs font-semibold ${soldOut ? "text-amber" : "text-forest/60"}`}>
@@ -205,21 +242,29 @@ export function DropPage({ drop, remaining, nextDrop }: DropPageProps) {
           <p className="text-sm text-forest/55 leading-relaxed mb-6">
             {statusMessages[drop.status as keyof typeof statusMessages]}
           </p>
+        </div>
 
-          {/* Meet Heidi */}
-          <div className="p-5 rounded-2xl bg-mint mb-4">
-            <div className="flex flex-col items-center text-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-forest flex items-center justify-center">
-                <span className="font-display font-black text-sm text-cream/70">
-                  H
-                </span>
-              </div>
-              <p className="text-sm text-forest/55 leading-relaxed max-w-[280px]">
-                Food engineer and pastry chef. Every munchis treat is handmade,
-                small-batch, no shortcuts.
-              </p>
+        {/* Baking Timeline */}
+        <div className="mx-4 p-5 rounded-2xl bg-forest/[0.03] mb-4">
+          <BakingTimeline drop={drop} orderedCount={orderedCount} />
+        </div>
+
+        {/* Meet Heidi */}
+        <div className="mx-4 p-5 rounded-2xl bg-mint mb-4">
+          <div className="flex flex-col items-center text-center gap-3">
+            <div className="w-10 h-10 rounded-full overflow-hidden">
+              <Image src="/images/munchis-icon.svg" alt="munchis" width={40} height={40} />
             </div>
+            <p className="text-sm text-forest/55 leading-relaxed max-w-[280px]">
+              Food engineer and pastry chef. Every munchis treat is handmade,
+              small-batch, no shortcuts.
+            </p>
           </div>
+        </div>
+
+        {/* Next drop card */}
+        <div className="mx-4 mb-4">
+          <NextDropCard nextDrop={nextDrop} currentDropId={drop.id} className="!rounded-2xl !p-5" />
         </div>
 
         {/* Notify for next drop */}
@@ -245,6 +290,78 @@ export function DropPage({ drop, remaining, nextDrop }: DropPageProps) {
   const priceFormatted = formatCents(drop.price_cents);
   const orderedCount = drop.capacity - remaining;
   const capacityPercent = drop.capacity > 0 ? Math.round((orderedCount / drop.capacity) * 100) : 0;
+  const liveSoldOut = remaining <= 0;
+
+  // ─── SOLD OUT (still active, capacity reached) ───
+  if (liveSoldOut && liveScreen !== "pay-now" && liveScreen !== "confirmed") {
+    return (
+      <main className="min-h-screen w-full max-w-lg mx-auto bg-cream flex flex-col">
+        <nav className="flex items-center justify-between px-4 py-4">
+          <a href="/">
+            <img
+              src="/images/logo-wordmark.svg"
+              alt="Munchis"
+              className="h-7 w-auto"
+            />
+          </a>
+          <div className="px-3 py-1.5 rounded-full border border-amber/30 bg-amber/8">
+            <span className="text-xs font-semibold text-amber">SOLD OUT</span>
+          </div>
+        </nav>
+
+        {/* Hero image */}
+        <div className="overflow-hidden aspect-[16/9] bg-forest/5">
+          <img
+            src={drop.hero_image_url || "/images/hero-cookies.jpg"}
+            alt={drop.flavor_name}
+            className="w-full h-full object-cover"
+          />
+        </div>
+
+        {/* Content */}
+        <div className="px-4 pt-5">
+          <p className="text-xs font-semibold text-amber uppercase tracking-wider mb-1">
+            THIS WEEK&apos;S DROP
+          </p>
+          <h2 className="font-display font-black text-[32px] text-forest leading-tight mb-1">
+            {drop.flavor_name}
+          </h2>
+          <p className="text-sm text-forest/45 leading-relaxed mb-4">
+            {drop.flavor_description}
+          </p>
+          <div className="flex items-baseline gap-2 mb-5">
+            <span className="font-display font-black text-2xl text-forest">{priceFormatted}</span>
+            <span className="text-sm text-forest/35">each</span>
+          </div>
+
+          {/* Scarcity bar */}
+          <div className="mb-4">
+            <div className="h-1.5 rounded-full bg-forest/8 w-full overflow-hidden mb-1.5">
+              <div className="h-full rounded-full bg-amber w-full" />
+            </div>
+            <span className="text-xs font-semibold text-amber">
+              {drop.capacity} of {drop.capacity} claimed — sold out
+            </span>
+          </div>
+
+          {/* FOMO + notify */}
+          <p className="text-sm text-forest/50 mb-4">
+            This drop went fast. Get a heads-up next time so you don&apos;t miss out.
+          </p>
+          <NotifyForm
+            dropId={drop.id}
+            subtitle="Be first in line for the next drop"
+            bgClass="bg-forest/[0.04] border border-forest/10"
+          />
+        </div>
+
+        <div className="px-4 py-8 text-center">
+          <p className="text-sm text-forest/40">Follow us for updates</p>
+          <p className="text-sm font-semibold text-forest">@eatmunchis</p>
+        </div>
+      </main>
+    );
+  }
 
   // ─── PAY NOW screen (artboard 52-0) ───
   if (liveScreen === "pay-now" && orderResult) {
@@ -261,7 +378,7 @@ export function DropPage({ drop, remaining, nextDrop }: DropPageProps) {
           Order reserved!
         </h2>
         <p className="text-sm text-forest/50 text-center max-w-[280px] mb-8">
-          Pay within 2 hours to lock in your order. Everything will be baked fresh by hand, just for you.
+          Pay within 20 minutes to lock in your order. Everything will be baked fresh by hand, just for you.
         </p>
 
         <div className="flex items-center gap-2 mb-8">
@@ -365,13 +482,15 @@ export function DropPage({ drop, remaining, nextDrop }: DropPageProps) {
     return (
       <main key="hero" className={`min-h-screen w-full max-w-lg mx-auto bg-cream flex flex-col ${screenAnim}`}>
         <nav className="flex items-center justify-between px-4 py-4">
-          <Image
-            src="/images/logo-wordmark.svg"
-            alt="munchis"
-            width={120}
-            height={34}
-            className="h-7 w-auto"
-          />
+          <a href="/">
+            <Image
+              src="/images/logo-wordmark.svg"
+              alt="munchis"
+              width={120}
+              height={34}
+              className="h-7 w-auto"
+            />
+          </a>
           <div className="flex items-center gap-2 px-3.5 py-2 rounded-full bg-green-accent/8 border border-green-accent/20">
             <div className="w-2 h-2 rounded-full bg-green-accent animate-pulse" />
             <span className="text-[13px] font-semibold text-forest">

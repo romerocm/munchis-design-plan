@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Fraunces, DM_Sans } from "next/font/google";
 import "./globals.css";
 
@@ -14,6 +14,11 @@ const dmSans = DM_Sans({
   display: "swap",
 });
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+};
+
 export const metadata: Metadata = {
   title: "munchis",
   description: "Handmade treats, baked fresh every Sunday",
@@ -26,7 +31,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${fraunces.variable} ${dmSans.variable}`}>
-      <body className="min-h-screen">{children}</body>
+      <body className="min-h-screen overflow-x-hidden">{children}</body>
     </html>
   );
 }

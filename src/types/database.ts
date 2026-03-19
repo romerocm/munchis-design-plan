@@ -1,5 +1,8 @@
-export type DropStatus = "draft" | "live" | "closed" | "baking" | "ready" | "completed";
+export type DropStatus = "draft" | "scheduled" | "live" | "closed" | "baking" | "ready" | "completed";
 export type OrderStatus = "pending" | "confirmed" | "expired" | "cancelled" | "picked_up";
+export type RecipeStatus = "idea" | "draft" | "testing" | "active" | "archived";
+export type IngredientUnit = "g" | "kg" | "ml" | "l" | "tsp" | "tbsp" | "cup" | "oz" | "lb" | "unit" | "pinch";
+export type BakingStepStatus = "pending" | "active" | "completed" | "skipped";
 
 export interface Drop {
   id: string;
@@ -18,10 +21,83 @@ export interface Drop {
   orders_close_at: string;
   closed_at: string | null;
   groceries_bought_at: string | null;
+  recipe_id: string | null;
   hero_image_url: string | null;
   flavor_image_url: string | null;
   created_at: string;
   updated_at: string;
+}
+
+export interface Recipe {
+  id: string;
+  status: RecipeStatus;
+  name: string;
+  description: string | null;
+  emoji: string | null;
+  image_url: string | null;
+  base_yield: number;
+  yield_unit: string;
+  prep_time_min: number | null;
+  bake_time_min: number | null;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface RecipeIngredient {
+  id: string;
+  recipe_id: string;
+  name: string;
+  quantity: number;
+  unit: string;
+  sort_order: number;
+  category: string | null;
+  notes: string | null;
+  created_at: string;
+}
+
+export interface RecipeStep {
+  id: string;
+  recipe_id: string;
+  step_number: number;
+  title: string;
+  description: string | null;
+  duration_min: number | null;
+  is_timer_step: boolean;
+  created_at: string;
+}
+
+export interface RecipeDetail extends Recipe {
+  ingredients: RecipeIngredient[];
+  steps: RecipeStep[];
+}
+
+export interface DropShoppingItem {
+  id: string;
+  drop_id: string;
+  ingredient_name: string;
+  ingredient_category: string | null;
+  base_quantity: number;
+  scaled_quantity: number;
+  unit: string;
+  checked: boolean;
+  checked_at: string | null;
+  sort_order: number;
+  created_at: string;
+}
+
+export interface DropBakingStep {
+  id: string;
+  drop_id: string;
+  step_number: number;
+  title: string;
+  description: string | null;
+  duration_min: number | null;
+  is_timer_step: boolean;
+  status: BakingStepStatus;
+  started_at: string | null;
+  completed_at: string | null;
+  created_at: string;
 }
 
 export interface Order {
@@ -55,11 +131,17 @@ export interface DropStats {
   flavor_name: string;
   capacity: number;
   status: DropStatus;
+  recipe_id: string | null;
+  recipe_name: string | null;
   confirmed_orders: number;
   confirmed_quantity: number;
   confirmed_revenue_cents: number;
   pending_orders: number;
   pending_quantity: number;
+  shopping_checked: number;
+  shopping_total: number;
+  baking_done: number;
+  baking_total: number;
 }
 
 // Supabase generated type helper
@@ -81,6 +163,31 @@ export interface Database {
         Insert: Omit<NotifyListEntry, "id" | "created_at">;
         Update: Partial<Omit<NotifyListEntry, "id" | "created_at">>;
       };
+      recipes: {
+        Row: Recipe;
+        Insert: Omit<Recipe, "id" | "created_at" | "updated_at">;
+        Update: Partial<Omit<Recipe, "id" | "created_at" | "updated_at">>;
+      };
+      recipe_ingredients: {
+        Row: RecipeIngredient;
+        Insert: Omit<RecipeIngredient, "id" | "created_at">;
+        Update: Partial<Omit<RecipeIngredient, "id" | "created_at">>;
+      };
+      recipe_steps: {
+        Row: RecipeStep;
+        Insert: Omit<RecipeStep, "id" | "created_at">;
+        Update: Partial<Omit<RecipeStep, "id" | "created_at">>;
+      };
+      drop_shopping_items: {
+        Row: DropShoppingItem;
+        Insert: Omit<DropShoppingItem, "id" | "created_at">;
+        Update: Partial<Omit<DropShoppingItem, "id" | "created_at">>;
+      };
+      drop_baking_steps: {
+        Row: DropBakingStep;
+        Insert: Omit<DropBakingStep, "id" | "created_at">;
+        Update: Partial<Omit<DropBakingStep, "id" | "created_at">>;
+      };
     };
     Views: {
       drop_stats: {
@@ -100,6 +207,9 @@ export interface Database {
     Enums: {
       drop_status: DropStatus;
       order_status: OrderStatus;
+      recipe_status: RecipeStatus;
+      ingredient_unit: IngredientUnit;
+      baking_step_status: BakingStepStatus;
     };
   };
 }

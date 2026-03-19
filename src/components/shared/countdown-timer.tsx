@@ -22,14 +22,41 @@ function getTimeLeft(target: string) {
 }
 
 export function CountdownTimer({ targetDate, label, compact }: CountdownTimerProps) {
-  const [time, setTime] = useState(getTimeLeft(targetDate));
+  // Start null to avoid SSR/client hydration mismatch from Date.now()
+  const [time, setTime] = useState<ReturnType<typeof getTimeLeft> | null>(null);
 
   useEffect(() => {
+    setTime(getTimeLeft(targetDate));
     const interval = setInterval(() => {
       setTime(getTimeLeft(targetDate));
-    }, 1_000); // update every second
+    }, 1_000);
     return () => clearInterval(interval);
   }, [targetDate]);
+
+  // Render placeholder during SSR / first paint to avoid hydration mismatch
+  if (!time) {
+    if (compact) return <span className="text-sm font-semibold text-forest/60">&nbsp;</span>;
+    return (
+      <div className="flex items-center gap-3">
+        {label && (
+          <p className="text-xs font-medium text-forest/40 uppercase tracking-wider">{label}</p>
+        )}
+        <div className="flex items-center gap-1.5">
+          {["Days", "Hrs", "Min", "Sec"].map((u, i) => (
+            <div key={u} className="flex flex-col items-center">
+              {i > 0 && <span className="font-display font-black text-lg text-forest/25 -mt-4">:</span>}
+              <div className={`${u === "Sec" ? "w-12 h-12" : "w-14 h-14"} rounded-xl bg-white flex items-center justify-center`}>
+                <span className={`font-display font-black ${u === "Sec" ? "text-xl text-forest/50" : "text-2xl text-forest"}`}>
+                  –
+                </span>
+              </div>
+              <span className="text-[10px] font-semibold text-forest/35 uppercase tracking-wider mt-1">{u}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   if (time.expired) {
     return (

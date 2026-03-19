@@ -25,6 +25,28 @@
 - [x] Full Paper audit — align all artboards to code
 - [ ] Deploy to production (Vercel)
 
+## Recipe Lab v3
+- [x] Migration: 014_recipe_lab.sql
+- [x] Types: database.ts (Recipe, RecipeIngredient, RecipeStep, etc.)
+- [x] Constants: src/lib/recipes/constants.ts
+- [x] API: Recipes CRUD (list, create, detail, update, delete)
+- [x] API: Ingredients CRUD (add, update, delete)
+- [x] API: Steps CRUD (add, update, delete)
+- [x] API: Drop shopping (GET, PATCH toggle)
+- [x] API: Drop baking (GET, PATCH status)
+- [x] API: drops route — recipe_id in ALLOWED_FIELDS
+- [x] API: drop-status route — rollback cleanup
+- [x] Tab bar: "Lab" tab added
+- [x] Lab tab component (Active Now + filter chips + grouped cards)
+- [x] Recipe detail view (read mode + edit mode)
+- [x] Shopping list component
+- [x] Baking plan component
+- [x] Dashboard client: wire up all views
+- [x] Server page: fetch recipes + drop_stats
+- [x] Drop editor: recipe selector
+- [x] TypeScript clean compile
+- [x] All tests pass (24/24)
+
 ## Paper Design — New Artboards Needed
 - [ ] Desktop v2 — Pre-Drop (countdown + marquee + how-it-works + notify)
 - [x] Desktop v2 — Closed/Baking (no marquee/how-it-works, Coming Next Week as primary CTA)
@@ -39,8 +61,8 @@
 - [ ] WhatsApp send integration
 - [ ] Real Wompi integration (replace sandbox)
 - [ ] Baker pickup checklist
-- [ ] Baker shopping list (from recipes)
-- [ ] Baker baking day planner
+- [x] Baker shopping list (from recipes)
+- [x] Baker baking day planner
 - [ ] Photo shoot brief
 - [ ] Analytics event specification
 - [ ] Inline Stripe/Wompi checkout (remove 2-hour payment window)

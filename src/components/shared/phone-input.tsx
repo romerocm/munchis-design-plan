@@ -68,7 +68,7 @@ export function PhoneInput({ value, onChange, placeholder, className = "", onSub
 
   if (!isLocal) {
     return (
-      <div className="flex flex-col gap-1.5">
+      <div className="flex flex-col gap-1.5 flex-1 min-w-0">
         <div className={`flex gap-2 ${className}`}>
           <input
             type="tel"
@@ -82,7 +82,7 @@ export function PhoneInput({ value, onChange, placeholder, className = "", onSub
         <button
           type="button"
           onClick={() => switchMode(true)}
-          className="text-[11px] text-forest/30 hover:text-forest/50 transition-colors text-center"
+          className="text-[11px] text-forest/30 hover:text-forest/50 transition-colors text-left"
         >
           Back to El Salvador (+503)
         </button>
@@ -91,7 +91,7 @@ export function PhoneInput({ value, onChange, placeholder, className = "", onSub
   }
 
   return (
-    <div className="flex flex-col gap-1.5">
+    <div className="flex flex-col gap-1.5 flex-1 min-w-0">
       <div className={`flex gap-2 ${className}`}>
         <div className={`flex items-center rounded-xl ${bgClass} overflow-hidden flex-1`}>
           <span className="pl-4 pr-2 text-sm font-medium text-forest/40 select-none shrink-0 border-r border-forest/8 py-3.5">
@@ -111,7 +111,7 @@ export function PhoneInput({ value, onChange, placeholder, className = "", onSub
       <button
         type="button"
         onClick={() => switchMode(false)}
-        className="text-[11px] text-forest/30 hover:text-forest/50 transition-colors text-center"
+        className="text-[11px] text-forest/30 hover:text-forest/50 transition-colors self-start"
       >
         Not in El Salvador?
       </button>

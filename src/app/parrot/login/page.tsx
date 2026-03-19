@@ -36,9 +36,7 @@ export default function ParrotLogin() {
         onSubmit={handleSubmit}
         className="w-full max-w-[320px] flex flex-col gap-4"
       >
-        <h1 className="font-display font-black text-2xl text-forest text-center">
-          munchis
-        </h1>
+        <img src="/images/logo-wordmark.svg" alt="munchis" className="h-8 mx-auto" />
         <p className="text-sm text-forest/40 text-center">Baker access</p>
 
         <input

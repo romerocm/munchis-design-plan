@@ -171,7 +171,7 @@ export function OrderStatusPage({ order: initialOrder, drop }: Props) {
           Order reserved!
         </h1>
         <p className="text-[15px] text-forest/45 text-center leading-relaxed max-w-[360px]">
-          Pay within 2 hours to lock in your order. Everything will be baked fresh by hand, just for you.
+          Pay within 20 minutes to lock in your order. Everything will be baked fresh by hand, just for you.
         </p>
 
         {/* Countdown */}

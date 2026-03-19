@@ -7,9 +7,10 @@ interface NotifyFormProps {
   dropId?: string;
   subtitle?: string;
   inline?: boolean;
+  bgClass?: string;
 }
 
-export function NotifyForm({ dropId, subtitle }: NotifyFormProps) {
+export function NotifyForm({ dropId, subtitle, bgClass }: NotifyFormProps) {
   const [whatsapp, setWhatsapp] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "done" | "error">(
     "idle"
@@ -51,11 +52,15 @@ export function NotifyForm({ dropId, subtitle }: NotifyFormProps) {
 
   return (
     <div>
-      <div className="flex gap-2 justify-center">
+      {subtitle && (
+        <p className="text-xs mb-2" style={{ color: "#302086" }}>{subtitle}</p>
+      )}
+      <div className="flex gap-2 w-full">
         <PhoneInput
           value={whatsapp}
           onChange={setWhatsapp}
           onSubmit={handleSubmit}
+          {...(bgClass ? { bgClass } : {})}
         />
         <button
           onClick={handleSubmit}
@@ -65,9 +70,6 @@ export function NotifyForm({ dropId, subtitle }: NotifyFormProps) {
           {status === "loading" ? "..." : "Notify me"}
         </button>
       </div>
-      {subtitle && (
-        <p className="text-xs text-forest/35 mt-2 text-center">{subtitle}</p>
-      )}
       {status === "error" && (
         <p className="text-xs text-red-text mt-2 text-center">
           Something went wrong. Try again.
