@@ -3,6 +3,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies, headers } from "next/headers";
 import { checkRateLimit } from "@/lib/auth/rate-limit";
+import { fetchWithTimeout } from "@/lib/supabase/fetch-with-timeout";
 
 interface LoginResult {
   error?: string;
@@ -40,6 +41,7 @@ export async function loginAction(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
     {
+      global: { fetch: fetchWithTimeout },
       cookies: {
         getAll() {
           return cookieStore.getAll();
@@ -53,14 +55,18 @@ export async function loginAction(
     }
   );
 
-  const { error: authError } = await supabase.auth.signInWithPassword({
-    email,
-    password,
-  });
+  try {
+    const { error: authError } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
 
-  if (authError) {
-    return { error: "Invalid credentials" };
+    if (authError) {
+      return { error: "Invalid credentials" };
+    }
+
+    return {};
+  } catch {
+    return { error: "Unable to reach the server. Please try again." };
   }
-
-  return {};
 }

@@ -16,13 +16,18 @@ export default function ParrotLogin() {
     setLoading(true);
     setError("");
 
-    const result = await loginAction(email, password);
+    try {
+      const result = await loginAction(email, password);
 
-    if (result.error) {
-      setError(result.error);
+      if (result.error) {
+        setError(result.error);
+        setLoading(false);
+      } else {
+        router.push("/parrot/dashboard");
+      }
+    } catch {
+      setError("Unable to reach the server. Please try again.");
       setLoading(false);
-    } else {
-      router.push("/parrot/dashboard");
     }
   }
 

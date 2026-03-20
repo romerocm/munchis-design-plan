@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import { fetchWithTimeout } from "./fetch-with-timeout";
 
 /**
  * Create a Supabase client for server components/actions that uses
@@ -14,6 +15,7 @@ export async function createAuthClient() {
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
     {
+      global: { fetch: fetchWithTimeout },
       cookies: {
         getAll() {
           return cookieStore.getAll();

@@ -17,6 +17,14 @@ async function getActiveDrop() {
     // pg_cron handles this if RPC fails
   }
 
+  // Lazy promotion: move scheduled drops to "live" once orders_open_at has passed
+  const now = new Date().toISOString();
+  await supabase
+    .from("drops")
+    .update({ status: "live" })
+    .eq("status", "scheduled")
+    .lte("orders_open_at", now);
+
   // Fetch all drops and pick the active one by priority
   const { data: drops } = await supabase
     .from("drops")

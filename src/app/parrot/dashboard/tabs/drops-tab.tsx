@@ -28,11 +28,13 @@ export function DropsTab({ drops, orders, onEditDrop, onCreateDrop }: Props) {
   }
 
   function daysUntil(dateStr: string) {
-    const diff = new Date(dateStr).getTime() - Date.now();
-    const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
-    if (days <= 0) return "Today";
-    if (days === 1) return "Tomorrow";
-    return `in ${days} days`;
+    const tz = "America/El_Salvador";
+    const today = new Date().toLocaleDateString("en-CA", { timeZone: tz });
+    const target = new Date(dateStr).toLocaleDateString("en-CA", { timeZone: tz });
+    const diff = (new Date(target).getTime() - new Date(today).getTime()) / (1000 * 60 * 60 * 24);
+    if (diff <= 0) return "Today";
+    if (diff === 1) return "Tomorrow";
+    return `in ${diff} days`;
   }
 
   return (
