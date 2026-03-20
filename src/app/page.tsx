@@ -4,6 +4,7 @@ import { findActiveDrop } from "@/lib/drops/find-active";
 import { DropPage } from "@/components/drop-page";
 import { DesktopDropPage } from "@/components/desktop/desktop-drop-page";
 import { DropPageSkeleton, DesktopDropPageSkeleton } from "@/components/shared/skeleton";
+import { StorefrontRealtime } from "@/components/storefront-realtime";
 
 export const dynamic = "force-dynamic";
 
@@ -16,6 +17,14 @@ async function getActiveDrop() {
   } catch {
     // pg_cron handles this if RPC fails
   }
+
+  // Lazy promotion: move scheduled drops to "live" once orders_open_at has passed
+  const now = new Date().toISOString();
+  await supabase
+    .from("drops")
+    .update({ status: "live" })
+    .eq("status", "scheduled")
+    .lte("orders_open_at", now);
 
   // Fetch all drops and pick the active one by priority
   const { data: drops } = await supabase
@@ -50,6 +59,7 @@ async function DropContent() {
   const { drop, remaining, nextDrop } = await getActiveDrop();
   return (
     <>
+      <StorefrontRealtime dropId={drop?.id} />
       {/* Mobile: <1024px */}
       <div className="lg:hidden">
         <DropPage drop={drop} remaining={remaining} nextDrop={nextDrop} />

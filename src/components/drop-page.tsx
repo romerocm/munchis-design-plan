@@ -9,7 +9,7 @@ import { NextDropCard } from "./shared/next-drop-card";
 import { BakingTimeline } from "./shared/baking-timeline";
 import { OrderSheet } from "./order-sheet";
 import { formatDropNumber } from "@/lib/drops/constants";
-import { formatCents, formatDay, formatDayOffset, utcToCST } from "@/lib/format";
+import { formatCents, formatDay, formatDayOffset, formatTime12, utcToCST } from "@/lib/format";
 import type { Drop } from "@/types/database";
 
 /*
@@ -513,7 +513,7 @@ export function DropPage({ drop, remaining, nextDrop }: DropPageProps) {
               />
             </svg>
             <span className="text-[11px] font-semibold text-white tracking-wide">
-              {drop.pickup_location} · {formatDay(drop.pickup_date)} {drop.pickup_time_start?.slice(0, 5)}
+              {drop.pickup_location} · {formatDay(drop.pickup_date)} {drop.pickup_time_start ? formatTime12(drop.pickup_time_start) : ""}{drop.pickup_time_end ? `–${formatTime12(drop.pickup_time_end)}` : ""}
             </span>
           </div>
         </div>

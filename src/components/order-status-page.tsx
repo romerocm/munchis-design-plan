@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { CountdownTimer } from "./shared/countdown-timer";
-import { formatCents, formatDay } from "@/lib/format";
+import { formatCents, formatDay, formatTime12 } from "@/lib/format";
 import type { Drop } from "@/types/database";
 
 interface Order {
@@ -96,7 +96,7 @@ export function OrderStatusPage({ order: initialOrder, drop }: Props) {
           {/* Pickup reminder */}
           <div className="flex items-center gap-2.5 px-6 py-3.5 rounded-2xl bg-white/8 max-w-full">
             <span className="text-[13px] text-white/50 text-center">
-              Pickup {pickupDay} {drop.pickup_time_start?.slice(0, 5)}–{drop.pickup_time_end?.slice(0, 5)} at {drop.pickup_location} · We&apos;ll WhatsApp you a reminder
+              Pickup {pickupDay} {drop.pickup_time_start ? formatTime12(drop.pickup_time_start) : ""}–{drop.pickup_time_end ? formatTime12(drop.pickup_time_end) : ""} at {drop.pickup_location} · We&apos;ll WhatsApp you a reminder
             </span>
           </div>
 

@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useEffect, useCallback, useTransition } from "react";
+import { useState, useEffect, useCallback, useMemo, useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getToken as getAuthToken } from "@/lib/auth/get-token";
 import { formatDropNumber } from "@/lib/drops/constants";
+import { useRealtimeRefresh } from "@/hooks/use-realtime-refresh";
 import { InputModal } from "@/components/shared/input-modal";
 import { TabBar, type Tab } from "./tabs/tab-bar";
 import { HomeTab } from "./tabs/home-tab";
@@ -34,9 +35,15 @@ interface Props {
   dropStats: DropStats[];
 }
 
+const DASHBOARD_SUBS = [
+  { table: "drops", event: "*" as const },
+  { table: "orders", event: "*" as const },
+];
+
 export function DashboardClient({ drops, orders, recipes, dropStats }: Props) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  useRealtimeRefresh(DASHBOARD_SUBS);
   const [, startTransition] = useTransition();
   const [showNewRecipe, setShowNewRecipe] = useState(false);
 

@@ -4,7 +4,7 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { MAX_ORDER_QUANTITY } from "@/lib/orders/constants";
 import { PhoneInput } from "./shared/phone-input";
-import { formatCents } from "@/lib/format";
+import { formatCents, formatTime12 } from "@/lib/format";
 import type { Drop } from "@/types/database";
 
 interface OrderSheetProps {
@@ -250,7 +250,15 @@ export function OrderSheet({ drop, remaining, onClose, onOrderComplete }: OrderS
             </div>
 
             <div className="flex items-center gap-4 mb-6">
-              <div className="w-14 h-14 rounded-xl bg-[#5C3D2E]/10 flex-shrink-0" />
+              <div className="w-14 h-14 rounded-xl bg-[#5C3D2E]/10 flex-shrink-0 overflow-hidden">
+                {(drop.flavor_image_url || drop.hero_image_url) && (
+                  <img
+                    src={drop.flavor_image_url || drop.hero_image_url!}
+                    alt={drop.flavor_name}
+                    className="w-full h-full object-cover"
+                  />
+                )}
+              </div>
               <div className="flex-1">
                 <p className="font-semibold text-forest">{drop.flavor_name}</p>
                 <p className="text-sm text-forest/50">
@@ -366,7 +374,7 @@ export function OrderSheet({ drop, remaining, onClose, onOrderComplete }: OrderS
                 Pickup Sunday at {drop.pickup_location}
               </span>
               <span className="text-xs text-forest/50">
-                {drop.pickup_time_start.slice(0, 5)} PM
+                {formatTime12(drop.pickup_time_start)}
               </span>
             </div>
 

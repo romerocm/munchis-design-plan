@@ -25,6 +25,14 @@ export default async function ParrotDashboard() {
 
   const supabase = createServerClient();
 
+  // Lazy promotion: move scheduled drops to "live" once orders_open_at has passed
+  const now = new Date().toISOString();
+  await supabase
+    .from("drops")
+    .update({ status: "live" })
+    .eq("status", "scheduled")
+    .lte("orders_open_at", now);
+
   const [dropsRes, ordersRes, recipesRes, statsRes] = await Promise.all([
     supabase.from("drops").select("*").order("number", { ascending: false }),
     supabase.from("orders").select("*").order("created_at", { ascending: false }).limit(500),

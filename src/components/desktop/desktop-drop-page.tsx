@@ -12,7 +12,7 @@ import { HowItWorks } from "./how-it-works";
 import { Footer } from "./footer";
 import { BakingTimeline } from "../shared/baking-timeline";
 import { formatDropNumber } from "@/lib/drops/constants";
-import { formatCents, formatDay, utcToCST } from "@/lib/format";
+import { formatCents, formatDay, formatTime12, utcToCST } from "@/lib/format";
 import type { Drop } from "@/types/database";
 
 interface Props {
@@ -171,9 +171,15 @@ export function DesktopDropPage({ drop, remaining, nextDrop }: Props) {
                 alt={drop.flavor_name}
                 className="absolute inset-0 w-full h-full object-cover"
               />
-              <div className="absolute top-4 right-4 flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-white/90">
-                <span className="text-[11px] font-semibold text-forest">
-                  {drop.pickup_location} · {formatDay(drop.pickup_date)} {drop.pickup_time_start?.slice(0, 5)}-{drop.pickup_time_end?.slice(0, 5)}
+              <div className="absolute bottom-4 right-4 flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-forest/85 backdrop-blur-sm">
+                <svg width="12" height="12" viewBox="0 0 14 14" fill="none">
+                  <path
+                    d="M7 0C4.24 0 2 2.24 2 5c0 3.75 5 9 5 9s5-5.25 5-9c0-2.76-2.24-5-5-5zm0 6.5A1.5 1.5 0 117 3.5a1.5 1.5 0 010 3z"
+                    fill="white"
+                  />
+                </svg>
+                <span className="text-[11px] font-semibold text-white tracking-wide">
+                  {drop.pickup_location} · {formatDay(drop.pickup_date)} {drop.pickup_time_start ? formatTime12(drop.pickup_time_start) : ""}{drop.pickup_time_end ? `–${formatTime12(drop.pickup_time_end)}` : ""}
                 </span>
               </div>
             </div>

@@ -1,3 +1,6 @@
+import { formatTime12 as formatTimeEs } from "@/lib/format";
+export { formatTimeEs };
+
 export type TemplateName =
   | "order_received"
   | "payment_confirmed"
@@ -157,12 +160,3 @@ export function formatDateEs(dateStr: string): string {
   });
 }
 
-/**
- * Format a time string (HH:MM:SS or HH:MM) to "2:00 PM"
- */
-export function formatTimeEs(timeStr: string): string {
-  const [h, m] = timeStr.split(":").map(Number);
-  const period = h >= 12 ? "PM" : "AM";
-  const hour12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
-  return `${hour12}:${String(m).padStart(2, "0")} ${period}`;
-}
