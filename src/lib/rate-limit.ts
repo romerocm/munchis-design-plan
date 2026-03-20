@@ -103,7 +103,7 @@ export class RateLimiter {
 const WINDOW_MS = 60_000; // 1 minute
 
 export const limiters = {
-  strict: new RateLimiter({ limit: 5, windowMs: WINDOW_MS }),
+  strict: new RateLimiter({ limit: 20, windowMs: WINDOW_MS }),
   webhook: new RateLimiter({ limit: 30, windowMs: WINDOW_MS }),
   cron: new RateLimiter({ limit: 10, windowMs: WINDOW_MS }),
   auth: new RateLimiter({ limit: 60, windowMs: WINDOW_MS }),
