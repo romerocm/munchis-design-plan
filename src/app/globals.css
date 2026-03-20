@@ -99,6 +99,29 @@ body {
 .animate-stagger-3 { animation: stagger-in 0.4s ease-out 0.3s both; }
 .animate-stagger-4 { animation: stagger-in 0.4s ease-out 0.4s both; }
 
+/* Gradient text shimmer for forward transitions */
+@keyframes gradient-shift {
+  0% { background-position: 200% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.animate-gradient-text {
+  background: linear-gradient(
+    90deg,
+    #1B3D2F 0%,
+    #D4A853 20%,
+    #B892BE 40%,
+    #C8963E 60%,
+    #B892BE 80%,
+    #1B3D2F 100%
+  );
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: gradient-shift 3s linear infinite;
+}
+
 /* Button press state */
 .btn-press {
   transition: transform 0.1s ease, opacity 0.1s ease;

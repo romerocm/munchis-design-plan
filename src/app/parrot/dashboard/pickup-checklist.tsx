@@ -56,6 +56,7 @@ export function PickupChecklist({ dropId, drop, getToken, onBack, onUpdateStatus
   const [undoToast, setUndoToast] = useState<UndoToast | null>(null);
   const [pickedUpExpanded, setPickedUpExpanded] = useState(true);
   const [noShowExpanded, setNoShowExpanded] = useState(false);
+  const [showReview, setShowReview] = useState(false);
   const undoToastRef = useRef(undoToast);
   undoToastRef.current = undoToast;
 
@@ -278,6 +279,57 @@ export function PickupChecklist({ dropId, drop, getToken, onBack, onUpdateStatus
     );
   }
 
+  // Review state — show all orders with undo capability
+  if (allDone && showReview) {
+    const reviewOrders = orders.filter((o) => o.status === "picked_up" || o.status === "no_show");
+    return (
+      <>
+        <div className="pb-8">
+          <div className="flex items-center justify-between px-4 pt-4 pb-2">
+            <button onClick={() => setShowReview(false)} className="flex items-center gap-1.5 text-forest/50 text-sm btn-press">
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                <path d="M8 2L4 6l4 4" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              Back
+            </button>
+          </div>
+          <div className="px-4 pb-3">
+            <h1 className="font-display font-black text-xl text-forest">Review orders</h1>
+            <p className="text-[13px] text-forest/40 mt-0.5">Tap an order to undo if needed</p>
+          </div>
+          <div className="px-4">
+            {reviewOrders.map((order) => (
+              <div key={order.id} className="flex items-center gap-3 py-3 border-b border-forest/5">
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${order.status === "picked_up" ? "bg-forest" : "bg-red-100"}`}>
+                  {order.status === "picked_up" ? (
+                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                      <path d="M4 7.5l2 2 4-4" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  ) : (
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                      <path d="M3 3l6 6M9 3l-6 6" stroke="#C4584A" strokeWidth="1.2" strokeLinecap="round" />
+                    </svg>
+                  )}
+                </div>
+                <div className="flex-1">
+                  <p className="text-[14px] font-medium text-forest">{order.customer_name}</p>
+                  <p className="text-[12px] text-forest/40">{order.quantity} cookies · {order.status === "picked_up" ? "Picked up" : "No-show"}</p>
+                </div>
+                <button
+                  onClick={() => markOrder(order.id, order.status === "picked_up" ? "undo_pickup" : "undo_no_show")}
+                  className="text-[12px] font-medium text-forest/40 px-3 py-1.5 rounded-full bg-forest/5 btn-press"
+                >
+                  Undo
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+        {toastPortal}
+      </>
+    );
+  }
+
   // Completion state
   if (allDone && !undoToast) {
     return (
@@ -349,6 +401,16 @@ export function PickupChecklist({ dropId, drop, getToken, onBack, onUpdateStatus
             </button>
           </div>
         )}
+
+        <button
+          onClick={() => setShowReview(true)}
+          className="flex items-center justify-center gap-1.5 mb-4 mx-auto text-[13px] font-medium text-forest/40 btn-press"
+        >
+          Review orders
+          <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+            <path d="M3 2l4 3-4 3" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
 
         <div className="px-4">
           <button

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getToken as getAuthToken } from "@/lib/auth/get-token";
 import { formatDropNumber } from "@/lib/drops/constants";
@@ -37,6 +37,7 @@ interface Props {
 export function DashboardClient({ drops, orders, recipes, dropStats }: Props) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const [, startTransition] = useTransition();
   const [showNewRecipe, setShowNewRecipe] = useState(false);
 
   // Restore view/tab from URL search params on mount
@@ -224,7 +225,12 @@ export function DashboardClient({ drops, orders, recipes, dropStats }: Props) {
           <RecipeDetailView
             recipeId={view.recipeId}
             getToken={getToken}
-            onBack={() => { setView({ type: "tabs" }); router.refresh(); }}
+            onBack={() => {
+              startTransition(() => {
+                router.refresh();
+              });
+              setView({ type: "tabs" });
+            }}
           />
         </div>
       </main>

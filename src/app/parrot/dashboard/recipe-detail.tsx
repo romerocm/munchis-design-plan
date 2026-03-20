@@ -373,7 +373,22 @@ export function RecipeDetailView({ recipeId, getToken, onBack }: Props) {
         {showEmojiPicker && (
           <EmojiPicker
             current={draftEmoji}
-            onSelect={setDraftEmoji}
+            onSelect={(emoji) => {
+              setDraftEmoji(emoji);
+              setShowEmojiPicker(false);
+              // Save immediately — don't wait for "Done"
+              if (recipe) {
+                setRecipe({ ...recipe, emoji });
+                getToken().then((token) => {
+                  if (!token) return;
+                  fetch(`/api/parrot/recipes/${recipeId}`, {
+                    method: "PATCH",
+                    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+                    body: JSON.stringify({ emoji }),
+                  });
+                });
+              }
+            }}
             onClose={() => setShowEmojiPicker(false)}
           />
         )}

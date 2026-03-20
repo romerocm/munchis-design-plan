@@ -496,10 +496,18 @@ export function HomeTab({ drops, orders, dropStats, onEditDrop, onViewOrders, on
                 className={`w-full px-4 py-2.5 text-left text-sm font-medium ${
                   disabled
                     ? "text-forest/20 cursor-not-allowed"
-                    : "text-forest/60 active:bg-forest/5"
+                    : isBackward
+                    ? "text-forest/40 active:bg-forest/5"
+                    : "active:bg-forest/5"
                 }`}
               >
-                {isBackward ? "\u2190" : "\u2192"} {label}
+                {isBackward ? (
+                  <span>{"\u2190"} {label}</span>
+                ) : (
+                  <span className="animate-gradient-text font-semibold">
+                    {"\u2192"} {label}
+                  </span>
+                )}
                 {disabled && (
                   <span className="block text-[11px] text-forest/20 mt-0.5">Sold out — no capacity left</span>
                 )}
