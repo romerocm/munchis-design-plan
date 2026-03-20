@@ -21,8 +21,28 @@ export function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
-  const ip = getClientIp(req);
   const tier = getTier(pathname, req.method);
+
+  // Skip rate limiting for webhooks — payment/messaging providers use shared
+  // IPs and must never be blocked during busy drops.
+  if (tier === "webhook") {
+    const response = NextResponse.next();
+    response.headers.set("X-Content-Type-Options", "nosniff");
+    response.headers.set("X-Frame-Options", "DENY");
+    return response;
+  }
+
+  const ip = getClientIp(req);
+
+  // If we can't identify the client, let the request through rather than
+  // risk lumping unrelated users into a shared rate-limit bucket.
+  if (ip === "unknown") {
+    const response = NextResponse.next();
+    response.headers.set("X-Content-Type-Options", "nosniff");
+    response.headers.set("X-Frame-Options", "DENY");
+    return response;
+  }
+
   const limiter = limiters[tier];
 
   // Key combines IP + tier so limits are independent per tier
