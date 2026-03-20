@@ -12,8 +12,13 @@ export function Footer() {
       />
       <p className="text-sm" style={{ color: "#E1CDE4" }}>One flavor. Handmade. Every Sunday.</p>
       <div className="flex gap-5 items-center pt-2">
-        {["instagram", "youtube", "tiktok", "facebook"].map((name) => (
-          <a key={name} href="#" className="opacity-50 hover:opacity-80 transition-opacity">
+        {([
+          ["instagram", "https://instagram.com/eatmunchis"],
+          ["youtube", "https://youtube.com/@eatmunchis"],
+          ["tiktok", "https://tiktok.com/@eatmunchis"],
+          ["facebook", "https://facebook.com/eatmunchis"],
+        ] as const).map(([name, url]) => (
+          <a key={name} href={url} target="_blank" rel="noopener noreferrer" className="opacity-50 hover:opacity-80 transition-opacity">
             <Image src={`/icons/${name}.svg`} alt={name} width={20} height={20} className="invert" />
           </a>
         ))}
