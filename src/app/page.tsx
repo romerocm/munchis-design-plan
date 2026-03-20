@@ -4,6 +4,7 @@ import { findActiveDrop } from "@/lib/drops/find-active";
 import { DropPage } from "@/components/drop-page";
 import { DesktopDropPage } from "@/components/desktop/desktop-drop-page";
 import { DropPageSkeleton, DesktopDropPageSkeleton } from "@/components/shared/skeleton";
+import { StorefrontRealtime } from "@/components/storefront-realtime";
 
 export const dynamic = "force-dynamic";
 
@@ -58,6 +59,7 @@ async function DropContent() {
   const { drop, remaining, nextDrop } = await getActiveDrop();
   return (
     <>
+      <StorefrontRealtime dropId={drop?.id} />
       {/* Mobile: <1024px */}
       <div className="lg:hidden">
         <DropPage drop={drop} remaining={remaining} nextDrop={nextDrop} />
