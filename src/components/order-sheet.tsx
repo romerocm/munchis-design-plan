@@ -250,7 +250,15 @@ export function OrderSheet({ drop, remaining, onClose, onOrderComplete }: OrderS
             </div>
 
             <div className="flex items-center gap-4 mb-6">
-              <div className="w-14 h-14 rounded-xl bg-[#5C3D2E]/10 flex-shrink-0" />
+              <div className="w-14 h-14 rounded-xl bg-[#5C3D2E]/10 flex-shrink-0 overflow-hidden">
+                {(drop.flavor_image_url || drop.hero_image_url) && (
+                  <img
+                    src={drop.flavor_image_url || drop.hero_image_url!}
+                    alt={drop.flavor_name}
+                    className="w-full h-full object-cover"
+                  />
+                )}
+              </div>
               <div className="flex-1">
                 <p className="font-semibold text-forest">{drop.flavor_name}</p>
                 <p className="text-sm text-forest/50">
