@@ -172,6 +172,12 @@ export function OrderSheet({ drop, remaining, onClose, onOrderComplete }: OrderS
               ? `Only ${data.remaining} left. Reduce your quantity and try again.`
               : "This drop just hit capacity. No more orders can be placed."
           );
+        } else if (res.status === 429) {
+          const retryAfter = res.headers.get("Retry-After");
+          const secs = retryAfter ? parseInt(retryAfter, 10) : 30;
+          setError(
+            `You're moving fast! Please wait ${secs} seconds and try again.`
+          );
         } else {
           setError(data.error || "Something went wrong");
         }
