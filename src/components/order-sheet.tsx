@@ -4,7 +4,7 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { MAX_ORDER_QUANTITY } from "@/lib/orders/constants";
 import { PhoneInput } from "./shared/phone-input";
-import { formatCents } from "@/lib/format";
+import { formatCents, formatTime12 } from "@/lib/format";
 import type { Drop } from "@/types/database";
 
 interface OrderSheetProps {
@@ -366,7 +366,7 @@ export function OrderSheet({ drop, remaining, onClose, onOrderComplete }: OrderS
                 Pickup Sunday at {drop.pickup_location}
               </span>
               <span className="text-xs text-forest/50">
-                {drop.pickup_time_start.slice(0, 5)} PM
+                {formatTime12(drop.pickup_time_start)}
               </span>
             </div>
 

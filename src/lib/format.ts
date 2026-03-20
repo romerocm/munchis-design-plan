@@ -64,6 +64,14 @@ export function cstToUTC(date: string, time: string): string {
   return new Date(`${date}T${time}:00-06:00`).toISOString();
 }
 
+/** Format a time string (HH:MM:SS or HH:MM) to "2:00 PM" */
+export function formatTime12(timeStr: string): string {
+  const [h, m] = timeStr.split(":").map(Number);
+  const period = h >= 12 ? "PM" : "AM";
+  const hour12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
+  return `${hour12}:${String(m).padStart(2, "0")} ${period}`;
+}
+
 /** Extract initials from a name: "Maria Alejandra" -> "MA" */
 export function getInitials(name: string): string {
   return name
