@@ -11,7 +11,7 @@ vi.mock("@supabase/supabase-js", () => ({
   }),
 }));
 
-import { verifyAuth } from "@/lib/auth/verify";
+import { verifyAuth, clearAuthCache } from "@/lib/auth/verify";
 
 function makeRequest(headers: Record<string, string> = {}): NextRequest {
   return new NextRequest("http://localhost/api/test", { headers });
@@ -20,6 +20,7 @@ function makeRequest(headers: Record<string, string> = {}): NextRequest {
 describe("verifyAuth", () => {
   beforeEach(() => {
     mockGetUser.mockReset();
+    clearAuthCache();
     process.env.BAKER_EMAILS = "heidi@munchis.sv";
   });
 

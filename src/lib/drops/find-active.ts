@@ -21,7 +21,7 @@ function getTodayCST(now: Date): string {
   return now.toLocaleDateString("en-CA", { timeZone: "America/El_Salvador" });
 }
 
-function pickBest(candidates: Drop[], todayCST: string, status: DropStatus): Drop | undefined {
+function pickBest(candidates: Drop[], todayCST: string, status: DropStatus, now: Date): Drop | undefined {
   if (status === "completed") {
     // Most recent pickup_date first
     return candidates.sort((a, b) => b.pickup_date.localeCompare(a.pickup_date))[0];
@@ -33,7 +33,7 @@ function pickBest(candidates: Drop[], todayCST: string, status: DropStatus): Dro
 
   if (status === "draft" || status === "scheduled") {
     // Prefer soonest future orders_open_at
-    const nowISO = new Date().toISOString();
+    const nowISO = now.toISOString();
     const futureOpens = pool.filter((d) => d.orders_open_at > nowISO);
     if (futureOpens.length > 0) {
       return futureOpens.sort((a, b) => a.orders_open_at.localeCompare(b.orders_open_at))[0];
@@ -56,7 +56,7 @@ export function findActiveDrop(drops: Drop[], now?: Date): Drop | undefined {
     const candidates = drops.filter((d) => d.status === status);
     if (candidates.length === 0) continue;
 
-    const best = pickBest(candidates, todayCST, status);
+    const best = pickBest(candidates, todayCST, status, currentNow);
     if (best) return best;
   }
 

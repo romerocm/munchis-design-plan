@@ -8,6 +8,11 @@ import type { User } from "@supabase/supabase-js";
  */
 const verifiedCache = new Map<string, { user: User; expiresAt: number }>();
 
+/** Clear the auth cache (used in tests) */
+export function clearAuthCache() {
+  verifiedCache.clear();
+}
+
 /**
  * Verify the authenticated user from a Bearer token in the request header.
  * Caches results for 60s to avoid slow Supabase auth round-trips.
