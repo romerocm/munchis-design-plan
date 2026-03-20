@@ -1,9 +1,28 @@
+import { redirect } from "next/navigation";
 import { createServerClient } from "@/lib/supabase/server";
+import { createAuthClient } from "@/lib/supabase/server-auth";
 import { DashboardClient } from "./dashboard-client";
 
 export const dynamic = "force-dynamic";
 
 export default async function ParrotDashboard() {
+  // Defense-in-depth: verify auth even though middleware already checks
+  const authClient = await createAuthClient();
+  const {
+    data: { user },
+  } = await authClient.auth.getUser();
+
+  if (!user) {
+    redirect("/parrot/login");
+  }
+
+  const bakerEmails = (process.env.BAKER_EMAILS || "heidi@munchis.sv").split(
+    ","
+  );
+  if (!user.email || !bakerEmails.includes(user.email)) {
+    redirect("/parrot/login");
+  }
+
   const supabase = createServerClient();
 
   const [dropsRes, ordersRes, recipesRes, statsRes] = await Promise.all([

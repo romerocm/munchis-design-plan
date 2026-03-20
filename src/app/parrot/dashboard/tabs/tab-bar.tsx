@@ -78,25 +78,27 @@ export function TabBar({ active, onChange }: TabBarProps) {
   ];
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-40 flex justify-around bg-white border-t border-forest/6 px-4 pt-2.5 pb-7">
-      {tabs.map((tab) => (
-        <button
-          key={tab.id}
-          onClick={() => onChange(tab.id)}
-          className="flex flex-col items-center gap-1 btn-press"
-        >
-          {tab.icon(active === tab.id)}
-          <span
-            className={`text-[10px] ${
-              active === tab.id
-                ? "font-semibold text-forest"
-                : "font-medium text-forest/35"
-            }`}
+    <div className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-forest/6 pt-2.5 pb-7">
+      <div className="flex justify-around max-w-lg mx-auto px-4">
+        {tabs.map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => onChange(tab.id)}
+            className="flex flex-col items-center gap-1 btn-press"
           >
-            {tab.label}
-          </span>
-        </button>
-      ))}
+            {tab.icon(active === tab.id)}
+            <span
+              className={`text-[10px] ${
+                active === tab.id
+                  ? "font-semibold text-forest"
+                  : "font-medium text-forest/35"
+              }`}
+            >
+              {tab.label}
+            </span>
+          </button>
+        ))}
+      </div>
     </div>
   );
 }

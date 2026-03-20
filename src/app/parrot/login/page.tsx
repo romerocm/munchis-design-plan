@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
+import { loginAction } from "./actions";
 
 export default function ParrotLogin() {
   const [email, setEmail] = useState("");
@@ -16,14 +16,10 @@ export default function ParrotLogin() {
     setLoading(true);
     setError("");
 
-    const supabase = createClient();
-    const { error: authError } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    const result = await loginAction(email, password);
 
-    if (authError) {
-      setError("Invalid credentials");
+    if (result.error) {
+      setError(result.error);
       setLoading(false);
     } else {
       router.push("/parrot/dashboard");
