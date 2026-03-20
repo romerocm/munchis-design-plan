@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { findActiveDrop } from "@/lib/drops/find-active";
@@ -18,9 +19,10 @@ interface Props {
   onUpdateStatus: (dropId: string, status: string) => Promise<void>;
   onOpenShopping: (dropId: string) => void;
   onOpenBaking: (dropId: string) => void;
+  onOpenPickup: (dropId: string) => void;
 }
 
-export function HomeTab({ drops, orders, dropStats, onEditDrop, onViewOrders, onUpdateStatus, onOpenShopping, onOpenBaking }: Props) {
+export function HomeTab({ drops, orders, dropStats, onEditDrop, onViewOrders, onUpdateStatus, onOpenShopping, onOpenBaking, onOpenPickup }: Props) {
   const router = useRouter();
   const [statusDropdown, setStatusDropdown] = useState<string | null>(null);
   const [showProfile, setShowProfile] = useState(false);
@@ -47,7 +49,7 @@ export function HomeTab({ drops, orders, dropStats, onEditDrop, onViewOrders, on
   const totalRevenue = paidOrders.reduce((sum, o) => sum + o.total_cents, 0);
   const totalTreats = paidOrders.reduce((sum, o) => sum + o.quantity, 0);
   const recentOrders = currentDrop
-    ? orders.filter((o) => o.drop_id === currentDrop.id).slice(0, 5)
+    ? orders.filter((o) => o.drop_id === currentDrop.id && o.status !== "no_show" && o.status !== "expired" && o.status !== "cancelled").slice(0, 5)
     : [];
   const upcomingDrafts = drops.filter((d) => d.status === "draft" || d.status === "scheduled");
 
@@ -55,7 +57,30 @@ export function HomeTab({ drops, orders, dropStats, onEditDrop, onViewOrders, on
   const [today, setToday] = useState(-1); // -1 = SSR placeholder, no day highlighted
   useEffect(() => setToday(new Date().getDay()), []);
 
-  return (
+  const statusBtnRef = useRef<HTMLButtonElement>(null);
+  const [dropdownPos, setDropdownPos] = useState<{ top: number; right: number } | null>(null);
+  const [pendingStatus, setPendingStatus] = useState<{ dropId: string; status: string } | null>(null);
+  // Clear pending once props reflect the new status, or after 10s safety timeout
+  useEffect(() => {
+    if (!pendingStatus) return;
+    if (currentDrop && currentDrop.status === pendingStatus.status) {
+      setPendingStatus(null);
+      return;
+    }
+    const timeout = setTimeout(() => setPendingStatus(null), 10000);
+    return () => clearTimeout(timeout);
+  }, [currentDrop, pendingStatus]);
+
+  const [syncing, setSyncing] = useState(false);
+  const handleSync = useCallback(async () => {
+    setSyncing(true);
+    router.refresh();
+    // Brief visual feedback so Heidi sees the spin
+    setTimeout(() => setSyncing(false), 800);
+  }, [router]);
+
+
+  return (<>
     <div className="pb-24">
       {/* Header */}
       <div className="flex items-end justify-between px-4 pt-5 pb-3">
@@ -63,24 +88,36 @@ export function HomeTab({ drops, orders, dropStats, onEditDrop, onViewOrders, on
           <p className="text-[13px] text-forest/45">Good morning, Heidi</p>
           <a href="/parrot/dashboard"><img src="/images/logo-wordmark.svg" alt="munchis" className="h-7" /></a>
         </div>
-        <button
-          onClick={async () => {
-            if (!confirm("Log out?")) return;
-            const supabase = createClient();
-            await supabase.auth.signOut();
-            router.push("/parrot/login");
-          }}
-          className="w-8 h-8 rounded-full bg-forest/5 flex items-center justify-center btn-press"
-        >
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-            <path d="M6 14H3.5A1.5 1.5 0 012 12.5v-9A1.5 1.5 0 013.5 2H6M10.5 11.5L14 8l-3.5-3.5M14 8H6" stroke="#1B3D2F" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" opacity="0.4" />
-          </svg>
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleSync}
+            disabled={syncing}
+            className="w-8 h-8 rounded-full bg-forest/5 flex items-center justify-center btn-press"
+          >
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className={syncing ? "animate-spin" : ""}>
+              <path d="M13.5 2.5v3.5h-3.5M2.5 13.5V10h3.5" stroke="#1B3D2F" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" opacity="0.4" />
+              <path d="M3.5 6A5 5 0 0112.3 4L13.5 6M12.5 10a5 5 0 01-8.8 2L2.5 10" stroke="#1B3D2F" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" opacity="0.4" />
+            </svg>
+          </button>
+          <button
+            onClick={async () => {
+              if (!confirm("Log out?")) return;
+              const supabase = createClient();
+              await supabase.auth.signOut();
+              router.push("/parrot/login");
+            }}
+            className="w-8 h-8 rounded-full bg-forest/5 flex items-center justify-center btn-press"
+          >
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M6 14H3.5A1.5 1.5 0 012 12.5v-9A1.5 1.5 0 013.5 2H6M10.5 11.5L14 8l-3.5-3.5M14 8H6" stroke="#1B3D2F" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" opacity="0.4" />
+            </svg>
+          </button>
+        </div>
       </div>
 
       {/* Current Drop Banner */}
       {currentDrop && (
-        <div className="mx-4 rounded-2xl bg-forest p-4 space-y-3">
+        <div className="mx-4 rounded-2xl bg-forest p-4 space-y-3 overflow-visible">
           <div className="flex justify-between items-start">
             <div>
               <p className="text-[11px] font-semibold text-white/35 uppercase tracking-wider">
@@ -91,71 +128,35 @@ export function HomeTab({ drops, orders, dropStats, onEditDrop, onViewOrders, on
               </p>
             </div>
             {/* Tappable status badge */}
-            <div className="relative">
+            <div className="relative" data-status-dropdown>
               <button
-                onClick={() => setStatusDropdown(statusDropdown ? null : currentDrop.id)}
+                ref={statusBtnRef}
+                onClick={() => {
+                  if (statusDropdown) {
+                    setStatusDropdown(null);
+                    setDropdownPos(null);
+                  } else {
+                    const rect = statusBtnRef.current?.getBoundingClientRect();
+                    if (rect) setDropdownPos({ top: rect.bottom + 4, right: window.innerWidth - rect.right });
+                    setStatusDropdown(currentDrop.id);
+                  }
+                }}
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/12 text-xs font-semibold text-white uppercase btn-press"
+                disabled={!!pendingStatus}
               >
-                {currentDrop.status === "live" && (
+                {pendingStatus?.dropId === currentDrop.id ? (
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none" className="animate-spin">
+                    <circle cx="6" cy="6" r="5" stroke="white" strokeWidth="1.5" opacity="0.3" />
+                    <path d="M11 6a5 5 0 00-5-5" stroke="white" strokeWidth="1.5" strokeLinecap="round" />
+                  </svg>
+                ) : currentDrop.status === "live" ? (
                   <div className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
-                )}
-                {currentDrop.status}
+                ) : null}
+                {pendingStatus?.dropId === currentDrop.id ? pendingStatus.status : currentDrop.status}
                 <svg width="8" height="8" viewBox="0 0 8 8" fill="none">
                   <path d="M2 3L4 5L6 3" stroke="white" strokeWidth="1.2" strokeLinecap="round" />
                 </svg>
               </button>
-              {statusDropdown === currentDrop.id && (
-                <div className="absolute right-0 top-full mt-1 bg-white rounded-xl shadow-lg overflow-hidden z-10 min-w-[140px]">
-                  {/* Current status */}
-                  <div className="px-4 py-2.5 text-sm font-semibold text-forest bg-forest/5">
-                    <span className="inline-block w-1.5 h-1.5 rounded-full bg-forest mr-2" />
-                    {currentDrop.status.charAt(0).toUpperCase() + currentDrop.status.slice(1)}
-                  </div>
-                  {/* Valid transitions only */}
-                  {(DROP_TRANSITIONS[currentDrop.status] || []).map((s) => {
-                    // Friendly labels for transitions
-                    const isReopen = currentDrop.status === "closed" && s === "live";
-                    const transitionLabels: Record<string, Record<string, string>> = {
-                      draft: { scheduled: "Schedule drop" },
-                      scheduled: { live: "Go live now", draft: "Back to draft" },
-                      closed: { baking: "Start baking", live: "Reopen orders" },
-                      baking: { ready: "Ready for pickup", closed: "Back to closed" },
-                      ready: { completed: "Drop complete", baking: "Back to baking" },
-                      completed: { ready: "Back to ready" },
-                    };
-                    const label = transitionLabels[currentDrop.status]?.[s]
-                      || s.charAt(0).toUpperCase() + s.slice(1);
-                    const isBackward = label.startsWith("Back") || label.startsWith("Reopen");
-                    const disabled = isReopen && isSoldOut;
-                    return (
-                      <button
-                        key={s}
-                        disabled={disabled}
-                        onClick={() => {
-                          if (disabled) return;
-                          onUpdateStatus(currentDrop.id, s);
-                          setStatusDropdown(null);
-                        }}
-                        className={`w-full px-4 py-2.5 text-left text-sm font-medium transition ${
-                          disabled
-                            ? "text-forest/20 cursor-not-allowed"
-                            : "text-forest/60 hover:bg-forest/5"
-                        }`}
-                      >
-                        {isBackward ? "\u2190" : "\u2192"} {label}
-                        {disabled && (
-                          <span className="block text-[11px] text-forest/20 mt-0.5">Sold out — no capacity left</span>
-                        )}
-                      </button>
-                    );
-                  })}
-                  {(DROP_TRANSITIONS[currentDrop.status] || []).length === 0 && (
-                    <div className="px-4 py-2.5 text-sm text-forest/25">
-                      No further transitions
-                    </div>
-                  )}
-                </div>
-              )}
             </div>
           </div>
           {/* Week timeline */}
@@ -286,6 +287,47 @@ export function HomeTab({ drops, orders, dropStats, onEditDrop, onViewOrders, on
         return null;
       })()}
 
+      {/* Pickup progress — when drop is ready */}
+      {currentDrop && currentDrop.status === "ready" && (() => {
+        const dropOrders = orders.filter((o) => o.drop_id === currentDrop.id);
+        const pickupEligible = dropOrders.filter((o) => o.status === "confirmed" || o.status === "picked_up" || o.status === "no_show");
+        const pickedUpOrders = dropOrders.filter((o) => o.status === "picked_up");
+        if (pickupEligible.length === 0) return null;
+        return (
+          <div className="mx-4 mt-3">
+            <button
+              onClick={() => onOpenPickup(currentDrop.id)}
+              className="w-full flex items-center gap-3 p-3.5 rounded-xl border border-forest/6 btn-press"
+              style={{ backgroundColor: "#E1CDE420" }}
+            >
+              <div className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: "#E1CDE440" }}>
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  <rect x="3" y="3" width="10" height="10" rx="2" stroke="#8B6B8E" strokeWidth="1.3" />
+                  <path d="M5.5 8l2 2 3-3.5" stroke="#8B6B8E" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </div>
+              <div className="flex-1 text-left">
+                <p className="text-sm font-semibold text-forest">Pickup checklist</p>
+                <p className="text-[12px] text-forest/45">
+                  {pickedUpOrders.length}/{pickupEligible.length} picked up
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-12 h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: "#E1CDE440" }}>
+                  <div
+                    className="h-full rounded-full"
+                    style={{ backgroundColor: "#E1CDE4", width: `${pickupEligible.length > 0 ? (pickedUpOrders.length / pickupEligible.length) * 100 : 0}%` }}
+                  />
+                </div>
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                  <path d="M5 3l4 4-4 4" stroke="#8B6B8E" strokeWidth="1.3" strokeLinecap="round" opacity="0.5" />
+                </svg>
+              </div>
+            </button>
+          </div>
+        );
+      })()}
+
       {/* Stats */}
       {currentDrop && (
         <div className="flex gap-2 mx-4 mt-3">
@@ -348,24 +390,30 @@ export function HomeTab({ drops, orders, dropStats, onEditDrop, onViewOrders, on
         <div className="mt-5 mx-4">
           <div className="flex justify-between items-baseline mb-2">
             <h2 className="font-display font-black text-lg text-forest">Recent orders</h2>
-            <span className="text-xs text-forest/30">{recentOrders.length} total</span>
+            <button onClick={onViewOrders} className="text-xs text-forest/30 btn-press">
+              {recentOrders.length} total →
+            </button>
           </div>
           <div className="space-y-1.5">
             {recentOrders.map((order) => (
-              <div key={order.id} className="flex items-center gap-2.5 p-3 rounded-xl bg-white">
+              <button
+                key={order.id}
+                onClick={onViewOrders}
+                className="w-full flex items-center gap-2.5 p-3 rounded-xl bg-white btn-press"
+              >
                 <div className="w-8 h-8 rounded-full bg-mint flex items-center justify-center flex-shrink-0">
                   <span className="text-[10px] font-semibold text-forest">
                     {getInitials(order.customer_name)}
                   </span>
                 </div>
-                <div className="flex-1 min-w-0">
+                <div className="flex-1 min-w-0 text-left">
                   <p className="text-[13px] font-semibold text-forest truncate">{order.customer_name}</p>
                   <p className="text-[11px] text-forest/40">{order.quantity}x {currentDrop?.flavor_name} · {formatCents(order.total_cents)}</p>
                 </div>
                 <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase ${ORDER_STATUS_COLORS[order.status] || ""}`}>
                   {ORDER_STATUS_LABELS[order.status] || order.status}
                 </span>
-              </div>
+              </button>
             ))}
           </div>
         </div>
@@ -398,5 +446,83 @@ export function HomeTab({ drops, orders, dropStats, onEditDrop, onViewOrders, on
         </div>
       )}
     </div>
+
+    {/* Status dropdown — rendered as portal to avoid iOS PWA clipping */}
+    {statusDropdown && currentDrop && dropdownPos && createPortal(
+      <>
+        {/* Backdrop to catch outside taps */}
+        <div
+          className="fixed inset-0 z-[9998]"
+          onClick={() => { setStatusDropdown(null); setDropdownPos(null); }}
+        />
+        <div
+          className="fixed z-[9999] bg-white rounded-xl shadow-lg min-w-[160px]"
+          style={{ top: dropdownPos.top, right: dropdownPos.right }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="px-4 py-2.5 text-sm font-semibold text-forest bg-forest/5 rounded-t-xl">
+            <span className="inline-block w-1.5 h-1.5 rounded-full bg-forest mr-2" />
+            {currentDrop.status.charAt(0).toUpperCase() + currentDrop.status.slice(1)}
+          </div>
+          {(DROP_TRANSITIONS[currentDrop.status] || []).map((s) => {
+            const isReopen = currentDrop.status === "closed" && s === "live";
+            const transitionLabels: Record<string, Record<string, string>> = {
+              draft: { scheduled: "Schedule drop" },
+              scheduled: { live: "Go live now", draft: "Back to draft" },
+              closed: { baking: "Start baking", live: "Reopen orders" },
+              baking: { ready: "Ready for pickup", closed: "Back to closed" },
+              ready: { completed: "Drop complete", baking: "Back to baking" },
+              completed: { ready: "Back to ready" },
+            };
+            const label = transitionLabels[currentDrop.status]?.[s]
+              || s.charAt(0).toUpperCase() + s.slice(1);
+            const isBackward = label.startsWith("Back") || label.startsWith("Reopen");
+            const disabled = isReopen && isSoldOut;
+            return (
+              <button
+                key={s}
+                disabled={disabled || !!pendingStatus}
+                onClick={async () => {
+                  if (disabled) return;
+                  setStatusDropdown(null);
+                  setDropdownPos(null);
+                  setPendingStatus({ dropId: currentDrop.id, status: s });
+                  try {
+                    await onUpdateStatus(currentDrop.id, s);
+                  } catch {
+                    setPendingStatus(null);
+                  }
+                }}
+                className={`w-full px-4 py-2.5 text-left text-sm font-medium ${
+                  disabled
+                    ? "text-forest/20 cursor-not-allowed"
+                    : isBackward
+                    ? "text-forest/40 active:bg-forest/5"
+                    : "active:bg-forest/5"
+                }`}
+              >
+                {isBackward ? (
+                  <span>{"\u2190"} {label}</span>
+                ) : (
+                  <span className="animate-gradient-text font-semibold">
+                    {"\u2192"} {label}
+                  </span>
+                )}
+                {disabled && (
+                  <span className="block text-[11px] text-forest/20 mt-0.5">Sold out — no capacity left</span>
+                )}
+              </button>
+            );
+          })}
+          {(DROP_TRANSITIONS[currentDrop.status] || []).length === 0 && (
+            <div className="px-4 py-2.5 text-sm text-forest/25">
+              No further transitions
+            </div>
+          )}
+        </div>
+      </>,
+      document.body
+    )}
+  </>
   );
 }

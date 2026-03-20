@@ -14,6 +14,7 @@ export const ORDER_STATUS_COLORS: Record<OrderStatus, string> = {
   confirmed: "bg-green-100 text-green-700",
   expired: "bg-red-100 text-red-700",
   cancelled: "bg-gray-200 text-gray-600",
+  no_show: "bg-red-100 text-red-600",
   picked_up: "bg-forest text-white",
 };
 
@@ -23,5 +24,6 @@ export const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {
   confirmed: "Paid",
   expired: "Expired",
   cancelled: "Cancelled",
+  no_show: "No show",
   picked_up: "Picked up",
 };

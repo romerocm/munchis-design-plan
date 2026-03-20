@@ -12,9 +12,10 @@ interface Props {
   onSwitchToShopping: () => void;
   onViewRecipe: (recipeId: string) => void;
   onUpdateStatus: (dropId: string, status: string) => Promise<void>;
+  onOpenPickup?: (dropId: string) => void;
 }
 
-export function BakingPlan({ dropId, drop, getToken, onBack, onSwitchToShopping, onViewRecipe, onUpdateStatus }: Props) {
+export function BakingPlan({ dropId, drop, getToken, onBack, onSwitchToShopping, onViewRecipe, onUpdateStatus, onOpenPickup }: Props) {
   const [steps, setSteps] = useState<DropBakingStep[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -260,7 +261,10 @@ export function BakingPlan({ dropId, drop, getToken, onBack, onSwitchToShopping,
           <p className="font-display font-black text-lg text-forest">All steps complete!</p>
           <p className="text-[13px] text-forest/45 mt-1">Mark the drop as ready for pickup.</p>
           <button
-            onClick={() => onUpdateStatus(dropId, "ready")}
+            onClick={async () => {
+              await onUpdateStatus(dropId, "ready");
+              if (onOpenPickup) onOpenPickup(dropId);
+            }}
             className="mt-4 w-full py-3 rounded-xl bg-forest text-white text-sm font-semibold btn-press flex items-center justify-center gap-2"
           >
             Mark drop as ready

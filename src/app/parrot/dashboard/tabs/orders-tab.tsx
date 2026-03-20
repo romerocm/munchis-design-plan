@@ -30,6 +30,8 @@ export function OrdersTab({ drops, orders, onSimulatePayment }: Props) {
 
   const filtered = filter === "all"
     ? dropOrders
+    : filter === "confirmed"
+    ? dropOrders.filter((o) => o.status === "confirmed" || o.status === "picked_up")
     : dropOrders.filter((o) => o.status === filter);
 
   const counts = {
