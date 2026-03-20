@@ -1,5 +1,5 @@
 export type DropStatus = "draft" | "scheduled" | "live" | "closed" | "baking" | "ready" | "completed";
-export type OrderStatus = "pending" | "confirmed" | "expired" | "cancelled" | "picked_up";
+export type OrderStatus = "pending" | "confirmed" | "expired" | "cancelled" | "no_show" | "picked_up";
 export type RecipeStatus = "idea" | "draft" | "testing" | "active" | "archived";
 export type IngredientUnit = "g" | "kg" | "ml" | "l" | "tsp" | "tbsp" | "cup" | "oz" | "lb" | "unit" | "pinch";
 export type BakingStepStatus = "pending" | "active" | "completed" | "skipped";

@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect, useCallback } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { getToken as getAuthToken } from "@/lib/auth/get-token";
 import { formatDropNumber } from "@/lib/drops/constants";
 import { InputModal } from "@/components/shared/input-modal";
@@ -15,6 +15,7 @@ import { DropDetail } from "./drop-detail";
 import { RecipeDetailView } from "./recipe-detail";
 import { ShoppingList } from "./shopping-list";
 import { BakingPlan } from "./baking-plan";
+import { PickupChecklist } from "./pickup-checklist";
 import type { Drop, Order, Recipe, DropStats } from "@/types/database";
 
 type View =
@@ -23,7 +24,8 @@ type View =
   | { type: "editDrop"; drop: Drop; from?: "dropDetail" }
   | { type: "recipeDetail"; recipeId: string }
   | { type: "shopping"; dropId: string }
-  | { type: "baking"; dropId: string };
+  | { type: "baking"; dropId: string }
+  | { type: "pickup"; dropId: string };
 
 interface Props {
   drops: Drop[];
@@ -34,9 +36,64 @@ interface Props {
 
 export function DashboardClient({ drops, orders, recipes, dropStats }: Props) {
   const router = useRouter();
-  const [tab, setTab] = useState<Tab>("home");
-  const [view, setView] = useState<View>({ type: "tabs" });
+  const searchParams = useSearchParams();
   const [showNewRecipe, setShowNewRecipe] = useState(false);
+
+  // Restore view/tab from URL search params on mount
+  function parseViewFromParams(): { view: View; tab: Tab } {
+    const v = searchParams.get("view");
+    const dropId = searchParams.get("dropId");
+    const recipeId = searchParams.get("recipeId");
+    const t = (searchParams.get("tab") || "home") as Tab;
+
+    if (v === "pickup" && dropId) return { view: { type: "pickup", dropId }, tab: t };
+    if (v === "baking" && dropId) return { view: { type: "baking", dropId }, tab: t };
+    if (v === "shopping" && dropId) return { view: { type: "shopping", dropId }, tab: t };
+    if (v === "dropDetail" && dropId) {
+      const drop = drops.find((d) => d.id === dropId);
+      if (drop) return { view: { type: "dropDetail", drop }, tab: t };
+    }
+    if (v === "editDrop" && dropId) {
+      const drop = drops.find((d) => d.id === dropId);
+      const from = searchParams.get("from") as "dropDetail" | undefined;
+      if (drop) return { view: { type: "editDrop", drop, from }, tab: t };
+    }
+    if (v === "recipeDetail" && recipeId) return { view: { type: "recipeDetail", recipeId }, tab: t };
+    return { view: { type: "tabs" }, tab: t };
+  }
+
+  const initial = parseViewFromParams();
+  const [tab, setTabState] = useState<Tab>(initial.tab);
+  const [view, setViewState] = useState<View>(initial.view);
+
+  // Sync state → URL (replaceState, no navigation)
+  const syncUrl = useCallback((newView: View, newTab: Tab) => {
+    const params = new URLSearchParams();
+    if (newView.type !== "tabs") {
+      params.set("view", newView.type);
+      if ("dropId" in newView) params.set("dropId", newView.dropId);
+      if (newView.type === "dropDetail") params.set("dropId", newView.drop.id);
+      if (newView.type === "editDrop") {
+        params.set("dropId", newView.drop.id);
+        if (newView.from) params.set("from", newView.from);
+      }
+      if (newView.type === "recipeDetail") params.set("recipeId", newView.recipeId);
+    }
+    if (newTab !== "home") params.set("tab", newTab);
+    const qs = params.toString();
+    const url = qs ? `?${qs}` : window.location.pathname;
+    window.history.replaceState(null, "", url);
+  }, []);
+
+  function setView(v: View) {
+    setViewState(v);
+    syncUrl(v, tab);
+  }
+
+  function setTab(t: Tab) {
+    setTabState(t);
+    syncUrl(view, t);
+  }
 
   async function getToken() {
     const token = await getAuthToken();
@@ -49,12 +106,13 @@ export function DashboardClient({ drops, orders, recipes, dropStats }: Props) {
 
   async function updateStatus(dropId: string, status: string) {
     const token = await getToken();
-    if (!token) return;
-    await fetch("/api/parrot/drop-status", {
+    if (!token) throw new Error("Not authenticated");
+    const res = await fetch("/api/parrot/drop-status", {
       method: "PATCH",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       body: JSON.stringify({ dropId, status }),
     });
+    if (!res.ok) throw new Error("Failed to update status");
     router.refresh();
   }
 
@@ -115,6 +173,7 @@ export function DashboardClient({ drops, orders, recipes, dropStats }: Props) {
             orders={orders}
             onBack={() => { setView({ type: "tabs" }); router.refresh(); }}
             onEdit={() => setView({ type: "editDrop", drop: freshDrop, from: "dropDetail" })}
+            onOpenPickup={() => setView({ type: "pickup", dropId: freshDrop.id })}
           />
         </div>
       </main>
@@ -205,6 +264,25 @@ export function DashboardClient({ drops, orders, recipes, dropStats }: Props) {
             onSwitchToShopping={() => setView({ type: "shopping", dropId: view.dropId })}
             onViewRecipe={(recipeId) => setView({ type: "recipeDetail", recipeId })}
             onUpdateStatus={updateStatus}
+            onOpenPickup={(dropId) => setView({ type: "pickup", dropId })}
+          />
+        </div>
+      </main>
+    );
+  }
+
+  if (view.type === "pickup") {
+    const drop = getDrop(view.dropId);
+    if (!drop) { setView({ type: "tabs" }); return null; }
+    return (
+      <main className="min-h-screen bg-cream">
+        <div className="max-w-lg mx-auto">
+          <PickupChecklist
+            dropId={view.dropId}
+            drop={drop}
+            getToken={getToken}
+            onBack={() => { setView({ type: "tabs" }); router.refresh(); }}
+            onUpdateStatus={updateStatus}
           />
         </div>
       </main>
@@ -225,6 +303,7 @@ export function DashboardClient({ drops, orders, recipes, dropStats }: Props) {
             onUpdateStatus={updateStatus}
             onOpenShopping={(dropId) => setView({ type: "shopping", dropId })}
             onOpenBaking={(dropId) => setView({ type: "baking", dropId })}
+            onOpenPickup={(dropId) => setView({ type: "pickup", dropId })}
           />
         )}
         {tab === "orders" && (

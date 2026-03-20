@@ -10,9 +10,10 @@ interface Props {
   orders: Order[];
   onBack: () => void;
   onEdit: () => void;
+  onOpenPickup?: () => void;
 }
 
-export function DropDetail({ drop, orders, onBack, onEdit }: Props) {
+export function DropDetail({ drop, orders, onBack, onEdit, onOpenPickup }: Props) {
   const dropOrders = orders.filter((o) => o.drop_id === drop.id);
   const paidOrders = dropOrders.filter((o) => o.status === "confirmed" || o.status === "picked_up");
   const activeOrders = dropOrders.filter((o) => o.status === "pending" || o.status === "confirmed" || o.status === "picked_up");
@@ -28,7 +29,7 @@ export function DropDetail({ drop, orders, onBack, onEdit }: Props) {
     live: "bg-green-500 animate-pulse",
     closed: "bg-amber-500",
     baking: "bg-amber-500",
-    ready: "bg-blue-500",
+    ready: "bg-[#E1CDE4]",
     completed: "bg-forest/30",
     draft: "bg-forest/20",
     scheduled: "bg-purple-400",
@@ -150,6 +151,41 @@ export function DropDetail({ drop, orders, onBack, onEdit }: Props) {
           />
         </div>
       </div>
+
+      {/* Pickup checklist CTA */}
+      {drop.status === "ready" && onOpenPickup && paidOrders.length > 0 && (
+        <div className="px-4 mt-4">
+          <button
+            onClick={onOpenPickup}
+            className="w-full flex items-center gap-3 p-3.5 rounded-xl border border-forest/6 btn-press"
+            style={{ backgroundColor: "#E1CDE4" + "20" }}
+          >
+            <div className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: "#E1CDE4" + "40" }}>
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <rect x="3" y="3" width="10" height="10" rx="2" stroke="#8B6B8E" strokeWidth="1.3" />
+                <path d="M5.5 8l2 2 3-3.5" stroke="#8B6B8E" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </div>
+            <div className="flex-1 text-left">
+              <p className="text-sm font-semibold text-forest">Pickup checklist</p>
+              <p className="text-[12px] text-forest/45">
+                {paidOrders.filter((o) => o.status === "picked_up").length}/{paidOrders.length} picked up
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-12 h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: "#E1CDE4" + "40" }}>
+                <div
+                  className="h-full rounded-full"
+                  style={{ backgroundColor: "#E1CDE4", width: `${paidOrders.length > 0 ? (paidOrders.filter((o) => o.status === "picked_up").length / paidOrders.length) * 100 : 0}%` }}
+                />
+              </div>
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                <path d="M5 3l4 4-4 4" stroke="#8B6B8E" strokeWidth="1.3" strokeLinecap="round" opacity="0.5" />
+              </svg>
+            </div>
+          </button>
+        </div>
+      )}
 
       {/* Orders list */}
       {dropOrders.length > 0 && (
