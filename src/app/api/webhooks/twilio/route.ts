@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@/lib/supabase/server";
 import { recordOptOut, removeOptOut } from "@/lib/twilio/opt-out";
+import { verifyTwilioSignature } from "@/lib/twilio/verify-signature";
 
 const STOP_KEYWORDS = ["stop", "unsubscribe", "cancel", "parar", "cancelar"];
 const START_KEYWORDS = ["start", "subscribe", "iniciar", "suscribir"];
@@ -8,6 +9,22 @@ const START_KEYWORDS = ["start", "subscribe", "iniciar", "suscribir"];
 export async function POST(req: NextRequest) {
   // Twilio sends application/x-www-form-urlencoded
   const formData = await req.formData();
+
+  // Verify Twilio signature in production
+  if (process.env.TWILIO_AUTH_TOKEN) {
+    const signature = req.headers.get("x-twilio-signature") || "";
+    const params: Record<string, string> = {};
+    formData.forEach((value, key) => {
+      params[key] = value.toString();
+    });
+
+    if (!verifyTwilioSignature(req.url, params, signature)) {
+      return NextResponse.json(
+        { error: "Invalid signature" },
+        { status: 403 }
+      );
+    }
+  }
   const body = formData.get("Body")?.toString().trim().toLowerCase() || "";
   const from = formData.get("From")?.toString() || "";
   const messageStatus = formData.get("MessageStatus")?.toString();

@@ -11,7 +11,7 @@ vi.mock("@supabase/supabase-js", () => ({
   }),
 }));
 
-import { verifyAuth, clearAuthCache } from "@/lib/auth/verify";
+import { verifyAuth, clearAuthCache, invalidateToken } from "@/lib/auth/verify";
 
 function makeRequest(headers: Record<string, string> = {}): NextRequest {
   return new NextRequest("http://localhost/api/test", { headers });
@@ -109,5 +109,30 @@ describe("verifyAuth", () => {
     });
     await verifyAuth(makeRequest({ Authorization: "Bearer my-secret-token" }));
     expect(mockGetUser).toHaveBeenCalledWith("my-secret-token");
+  });
+
+  it("caches the result and does not call Supabase again within TTL", async () => {
+    const user = { id: "u1", email: "heidi@munchis.sv" };
+    mockGetUser.mockResolvedValue({ data: { user }, error: null });
+
+    await verifyAuth(makeRequest({ Authorization: "Bearer cached-token" }));
+    await verifyAuth(makeRequest({ Authorization: "Bearer cached-token" }));
+
+    // Only called once — second call served from cache
+    expect(mockGetUser).toHaveBeenCalledTimes(1);
+  });
+
+  it("invalidateToken removes a specific token from cache", async () => {
+    const user = { id: "u1", email: "heidi@munchis.sv" };
+    mockGetUser.mockResolvedValue({ data: { user }, error: null });
+
+    await verifyAuth(makeRequest({ Authorization: "Bearer to-invalidate" }));
+    expect(mockGetUser).toHaveBeenCalledTimes(1);
+
+    invalidateToken("to-invalidate");
+
+    await verifyAuth(makeRequest({ Authorization: "Bearer to-invalidate" }));
+    // Called again because cache was invalidated
+    expect(mockGetUser).toHaveBeenCalledTimes(2);
   });
 });

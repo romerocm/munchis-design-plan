@@ -8,9 +8,14 @@ import type { User } from "@supabase/supabase-js";
  */
 const verifiedCache = new Map<string, { user: User; expiresAt: number }>();
 
-/** Clear the auth cache (used in tests) */
+/** Clear the entire auth cache (used in tests) */
 export function clearAuthCache() {
   verifiedCache.clear();
+}
+
+/** Remove a specific token from the cache (e.g. on logout) */
+export function invalidateToken(token: string) {
+  verifiedCache.delete(token);
 }
 
 /**
@@ -37,8 +42,8 @@ export async function verifyAuth(req: NextRequest): Promise<User | null> {
   const bakerEmails = (process.env.BAKER_EMAILS || "heidi@munchis.sv").split(",");
   if (!user.email || !bakerEmails.includes(user.email)) return null;
 
-  // Cache for 60 seconds
-  verifiedCache.set(token, { user, expiresAt: Date.now() + 60_000 });
+  // Cache for 30 seconds (short TTL limits window if a token is revoked)
+  verifiedCache.set(token, { user, expiresAt: Date.now() + 30_000 });
 
   // Evict old entries periodically
   if (verifiedCache.size > 50) {

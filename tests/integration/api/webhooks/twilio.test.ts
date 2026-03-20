@@ -7,6 +7,11 @@ vi.mock("@/lib/supabase/server", () => ({
   createServerClient: () => client,
 }));
 
+// Bypass Twilio signature verification in integration tests
+vi.mock("@/lib/twilio/verify-signature", () => ({
+  verifyTwilioSignature: () => true,
+}));
+
 import { POST } from "@/app/api/webhooks/twilio/route";
 
 function buildFormRequest(body: Record<string, string>): Request {
