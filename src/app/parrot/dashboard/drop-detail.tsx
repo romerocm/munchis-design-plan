@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { formatDropNumber, DROP_STATUS_LABELS } from "@/lib/drops/constants";
 import { ORDER_STATUS_COLORS, ORDER_STATUS_LABELS } from "@/lib/orders/constants";
 import { formatCents, getInitials } from "@/lib/format";
@@ -11,12 +12,17 @@ interface Props {
   onBack: () => void;
   onEdit: () => void;
   onOpenPickup?: () => void;
+  onOrderAction?: (orderId: string, dropId: string, action: string) => Promise<void>;
 }
 
-export function DropDetail({ drop, orders, onBack, onEdit, onOpenPickup }: Props) {
+export function DropDetail({ drop, orders, onBack, onEdit, onOpenPickup, onOrderAction }: Props) {
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [actionLoading, setActionLoading] = useState(false);
+
   const dropOrders = orders.filter((o) => o.drop_id === drop.id);
-  const paidOrders = dropOrders.filter((o) => o.status === "confirmed" || o.status === "picked_up");
-  const activeOrders = dropOrders.filter((o) => o.status === "pending" || o.status === "confirmed" || o.status === "picked_up");
+  // Include no_show in paid orders — they paid even if they didn't pick up
+  const paidOrders = dropOrders.filter((o) => o.status === "confirmed" || o.status === "picked_up" || o.status === "no_show");
+  const activeOrders = dropOrders.filter((o) => o.status === "pending" || o.status === "confirmed" || o.status === "picked_up" || o.status === "no_show");
   const totalRevenue = paidOrders.reduce((sum, o) => sum + o.total_cents, 0);
   const totalTreats = paidOrders.reduce((sum, o) => sum + o.quantity, 0);
   const usedCapacity = activeOrders.reduce((sum, o) => sum + o.quantity, 0);
@@ -135,17 +141,17 @@ export function DropDetail({ drop, orders, onBack, onEdit, onOpenPickup }: Props
         <div className="rounded-xl bg-white p-3.5 space-y-3">
           <TimelineRow
             label="Orders open"
-            value={new Date(drop.orders_open_at).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit", timeZone: "America/El_Salvador" })}
+            value={formatDateTime(drop.orders_open_at)}
             done={isActive || isCompleted}
           />
           <TimelineRow
             label="Orders close"
-            value={new Date(drop.orders_close_at).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit", timeZone: "America/El_Salvador" })}
+            value={formatDateTime(drop.orders_close_at)}
             done={drop.status !== "live" && drop.status !== "scheduled" && drop.status !== "draft"}
           />
           <TimelineRow
             label="Pickup"
-            value={`${new Date(drop.pickup_date + "T12:00:00").toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", timeZone: "America/El_Salvador" })} · ${drop.pickup_time_start}–${drop.pickup_time_end}`}
+            value={`${formatDateOnly(drop.pickup_date + "T12:00:00")} · ${formatTime24(drop.pickup_time_start)}–${formatTime24(drop.pickup_time_end)}`}
             done={isCompleted}
             isLast
           />
@@ -153,7 +159,7 @@ export function DropDetail({ drop, orders, onBack, onEdit, onOpenPickup }: Props
       </div>
 
       {/* Pickup checklist CTA */}
-      {drop.status === "ready" && onOpenPickup && paidOrders.length > 0 && (
+      {(drop.status === "ready" || drop.status === "completed") && onOpenPickup && paidOrders.length > 0 && (
         <div className="px-4 mt-4">
           <button
             onClick={onOpenPickup}
@@ -195,22 +201,30 @@ export function DropDetail({ drop, orders, onBack, onEdit, onOpenPickup }: Props
             <span className="text-[11px] text-forest/25">{dropOrders.length} total</span>
           </div>
           <div className="space-y-1.5">
-            {dropOrders.map((order) => (
-              <div key={order.id} className="flex items-center gap-2.5 p-3 rounded-xl bg-white">
-                <div className="w-8 h-8 rounded-full bg-mint flex items-center justify-center flex-shrink-0">
-                  <span className="text-[10px] font-semibold text-forest">
-                    {getInitials(order.customer_name)}
+            {dropOrders.map((order) => {
+              const canAct = onOrderAction && (order.status === "no_show" || order.status === "picked_up");
+              return (
+                <button
+                  key={order.id}
+                  className={`w-full flex items-center gap-2.5 p-3 rounded-xl bg-white text-left ${canAct ? "btn-press" : ""}`}
+                  disabled={!canAct}
+                  onClick={() => canAct && setSelectedOrder(order)}
+                >
+                  <div className="w-8 h-8 rounded-full bg-mint flex items-center justify-center flex-shrink-0">
+                    <span className="text-[10px] font-semibold text-forest">
+                      {getInitials(order.customer_name)}
+                    </span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[13px] font-semibold text-forest truncate">{order.customer_name}</p>
+                    <p className="text-[11px] text-forest/40">{order.quantity}x · {formatCents(order.total_cents)}</p>
+                  </div>
+                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase ${ORDER_STATUS_COLORS[order.status] || ""}`}>
+                    {ORDER_STATUS_LABELS[order.status] || order.status}
                   </span>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-[13px] font-semibold text-forest truncate">{order.customer_name}</p>
-                  <p className="text-[11px] text-forest/40">{order.quantity}x · {formatCents(order.total_cents)}</p>
-                </div>
-                <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase ${ORDER_STATUS_COLORS[order.status] || ""}`}>
-                  {ORDER_STATUS_LABELS[order.status] || order.status}
-                </span>
-              </div>
-            ))}
+                </button>
+              );
+            })}
           </div>
         </div>
       )}
@@ -226,8 +240,144 @@ export function DropDetail({ drop, orders, onBack, onEdit, onOpenPickup }: Props
           </div>
         </div>
       )}
+
+      {/* Order action sheet */}
+      {selectedOrder && onOrderAction && (
+        <OrderActionSheet
+          order={selectedOrder}
+          loading={actionLoading}
+          onAction={async (action) => {
+            setActionLoading(true);
+            try {
+              await onOrderAction(selectedOrder.id, drop.id, action);
+              setSelectedOrder(null);
+            } finally {
+              setActionLoading(false);
+            }
+          }}
+          onClose={() => setSelectedOrder(null)}
+        />
+      )}
     </>
   );
+}
+
+function OrderActionSheet({
+  order,
+  loading,
+  onAction,
+  onClose,
+}: {
+  order: Order;
+  loading: boolean;
+  onAction: (action: string) => void;
+  onClose: () => void;
+}) {
+  const actions: { label: string; action: string; description: string }[] = [];
+
+  if (order.status === "no_show") {
+    actions.push({
+      label: "Undo no-show",
+      action: "undo_no_show",
+      description: "Change back to paid status",
+    });
+  }
+  if (order.status === "picked_up") {
+    actions.push({
+      label: "Undo pickup",
+      action: "undo_pickup",
+      description: "Change back to paid status",
+    });
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-end justify-center" onClick={onClose}>
+      <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" />
+      <div
+        className="relative w-full max-w-lg rounded-t-2xl bg-cream p-4 pb-8 animate-slide-up"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Handle bar */}
+        <div className="flex justify-center mb-4">
+          <div className="w-10 h-1 rounded-full bg-forest/15" />
+        </div>
+
+        {/* Order info */}
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-10 h-10 rounded-full bg-mint flex items-center justify-center flex-shrink-0">
+            <span className="text-xs font-semibold text-forest">
+              {getInitials(order.customer_name)}
+            </span>
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-forest">{order.customer_name}</p>
+            <p className="text-[12px] text-forest/45">
+              {order.quantity}x · {formatCents(order.total_cents)}
+            </p>
+          </div>
+          <span className={`px-2.5 py-1 rounded-full text-[10px] font-semibold uppercase ${ORDER_STATUS_COLORS[order.status] || ""}`}>
+            {ORDER_STATUS_LABELS[order.status] || order.status}
+          </span>
+        </div>
+
+        {/* Actions */}
+        <div className="space-y-2">
+          {actions.map(({ label, action, description }) => (
+            <button
+              key={action}
+              disabled={loading}
+              onClick={() => onAction(action)}
+              className="w-full flex items-center gap-3 p-3.5 rounded-xl bg-white btn-press disabled:opacity-50"
+            >
+              <div className="w-8 h-8 rounded-full bg-forest/5 flex items-center justify-center flex-shrink-0">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                  <path d="M3 7.5l-1.5-1.5M3 7.5L7 4M11 3l-4 4" stroke="#1B3D2F" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" opacity="0.6" />
+                </svg>
+              </div>
+              <div className="flex-1 text-left">
+                <p className="text-sm font-semibold text-forest">{label}</p>
+                <p className="text-[11px] text-forest/40">{description}</p>
+              </div>
+              {loading && (
+                <div className="w-4 h-4 border-2 border-forest/20 border-t-forest rounded-full animate-spin" />
+              )}
+            </button>
+          ))}
+        </div>
+
+        {/* Cancel */}
+        <button
+          onClick={onClose}
+          className="w-full mt-3 p-3 rounded-xl text-sm font-semibold text-forest/40 btn-press"
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  );
+}
+
+const TZ = "America/El_Salvador";
+
+/** Format ISO string to "Wed, Mar 18, 6:00 PM" — deterministic across server/client */
+function formatDateTime(iso: string): string {
+  const d = new Date(iso);
+  const datePart = new Intl.DateTimeFormat("en-US", { weekday: "short", month: "short", day: "numeric", timeZone: TZ }).format(d);
+  const timePart = new Intl.DateTimeFormat("en-US", { hour: "numeric", minute: "2-digit", timeZone: TZ }).format(d);
+  return `${datePart}, ${timePart}`;
+}
+
+/** Format ISO string to "Sun, Apr 5" */
+function formatDateOnly(iso: string): string {
+  return new Intl.DateTimeFormat("en-US", { weekday: "short", month: "short", day: "numeric", timeZone: TZ }).format(new Date(iso));
+}
+
+/** Format "14:00:00" → "2:00 PM" */
+function formatTime24(time: string): string {
+  const [h, m] = time.split(":").map(Number);
+  const suffix = h >= 12 ? "PM" : "AM";
+  const h12 = h % 12 || 12;
+  return `${h12}:${String(m).padStart(2, "0")} ${suffix}`;
 }
 
 function TimelineRow({ label, value, done, isLast }: { label: string; value: string; done: boolean; isLast?: boolean }) {
