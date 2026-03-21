@@ -23,12 +23,19 @@ export const viewport: Viewport = {
 const DOMAIN = process.env.NEXT_PUBLIC_APP_URL ?? "https://eatmunchis.com";
 
 export const metadata: Metadata = {
+  applicationName: "munchis",
   title: {
     default: "munchis",
     template: "%s | munchis",
   },
   description: "Postres artesanales en drops semanales. Pide antes de que se agoten.",
+  manifest: "/manifest.webmanifest",
   metadataBase: new URL(DOMAIN),
+  appleWebApp: {
+    capable: true,
+    title: "munchis",
+    statusBarStyle: "default",
+  },
   openGraph: {
     title: "munchis — postres artesanales",
     description: "Drops semanales, hechos a mano. Pide antes de que se agoten.",
@@ -57,6 +64,9 @@ export const metadata: Metadata = {
   },
   alternates: {
     canonical: DOMAIN,
+  },
+  other: {
+    "mobile-web-app-capable": "yes",
   },
 };
 
