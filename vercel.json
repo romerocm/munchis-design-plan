@@ -1,7 +1,6 @@
 {
   "crons": [
-    { "path": "/api/cron/payment-reminders", "schedule": "*/2 * * * *" },
-    { "path": "/api/cron/last-call", "schedule": "0 15 * * *" },
+{ "path": "/api/cron/last-call", "schedule": "0 15 * * *" },
     { "path": "/api/cron/pickup-reminders", "schedule": "0 21 * * *" }
   ]
 }
