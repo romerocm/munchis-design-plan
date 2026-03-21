@@ -11,8 +11,8 @@ test.describe("Baker Dashboard Home", () => {
   });
 
   test("shows greeting", async ({ page }) => {
-    // Should show "Good morning, Heidi" or similar greeting
-    await expect(page.getByText(/good|heidi|dashboard/i).first()).toBeVisible({ timeout: 5_000 });
+    // Should show a time-aware Spanish greeting with Heidi's name
+    await expect(page.getByText(/heidi|dashboard/i).first()).toBeVisible({ timeout: 5_000 });
   });
 
   test("shows current drop info", async ({ page }) => {
