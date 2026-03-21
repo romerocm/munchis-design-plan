@@ -2,7 +2,7 @@
   "name": "munchis",
   "short_name": "munchis",
   "description": "Postres artesanales en drops semanales.",
-  "start_url": "/",
+  "start_url": "/parrot/dashboard",
   "display": "standalone",
   "background_color": "#faf6f1",
   "theme_color": "#2c3c2c",
