@@ -165,6 +165,21 @@ export function DashboardClient({ drops, orders, recipes, dropStats }: Props) {
     }
   }
 
+  async function handleOrderAction(orderId: string, dropId: string, action: string) {
+    const token = await getToken();
+    if (!token) return;
+    const res = await fetch(`/api/parrot/drops/${dropId}/pickup`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ orderId, action }),
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.error || "Failed to update order");
+    }
+    router.refresh();
+  }
+
   function getDrop(dropId: string): Drop | undefined {
     return drops.find((d) => d.id === dropId);
   }
@@ -182,6 +197,7 @@ export function DashboardClient({ drops, orders, recipes, dropStats }: Props) {
             onBack={() => { setView({ type: "tabs" }); router.refresh(); }}
             onEdit={() => setView({ type: "editDrop", drop: freshDrop, from: "dropDetail" })}
             onOpenPickup={() => setView({ type: "pickup", dropId: freshDrop.id })}
+            onOrderAction={handleOrderAction}
           />
         </div>
       </main>
