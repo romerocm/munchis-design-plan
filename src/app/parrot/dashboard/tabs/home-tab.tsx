@@ -9,6 +9,7 @@ import { DROP_STATUS_LABELS, DROP_TRANSITIONS, formatDropNumber } from "@/lib/dr
 import { ORDER_STATUS_COLORS, ORDER_STATUS_LABELS } from "@/lib/orders/constants";
 import { formatCents, getInitials } from "@/lib/format";
 import type { Drop, Order, DropStats } from "@/types/database";
+import { getGreeting } from "@/lib/greetings";
 
 interface Props {
   drops: Drop[];
@@ -55,7 +56,11 @@ export function HomeTab({ drops, orders, dropStats, onEditDrop, onViewOrders, on
 
   // Defer to client to avoid SSR hydration mismatch (server may be in different timezone)
   const [today, setToday] = useState(-1); // -1 = SSR placeholder, no day highlighted
-  useEffect(() => setToday(new Date().getDay()), []);
+  const [greeting, setGreeting] = useState("");
+  useEffect(() => {
+    setToday(new Date().getDay());
+    setGreeting(getGreeting());
+  }, []);
 
   const statusBtnRef = useRef<HTMLButtonElement>(null);
   const [dropdownPos, setDropdownPos] = useState<{ top: number; right: number } | null>(null);
@@ -85,7 +90,7 @@ export function HomeTab({ drops, orders, dropStats, onEditDrop, onViewOrders, on
       {/* Header */}
       <div className="flex items-end justify-between px-4 pt-5 pb-3">
         <div>
-          <p className="text-[13px] text-forest/45">Good morning, Heidi</p>
+          <p className="text-[13px] text-forest/45">{greeting || "\u00A0"}</p>
           <a href="/parrot/dashboard"><img src="/images/logo-wordmark.svg" alt="munchis" className="h-7" /></a>
         </div>
         <div className="flex items-center gap-2">
