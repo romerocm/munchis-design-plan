@@ -34,7 +34,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     title: "munchis",
-    statusBarStyle: "default",
+    statusBarStyle: "black-translucent",
   },
   openGraph: {
     title: "munchis — postres artesanales",
@@ -64,6 +64,9 @@ export const metadata: Metadata = {
   },
   alternates: {
     canonical: DOMAIN,
+  },
+  icons: {
+    apple: "/images/apple-touch-icon.png",
   },
   other: {
     "mobile-web-app-capable": "yes",
