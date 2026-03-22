@@ -24,7 +24,7 @@ interface Props {
 }
 
 export function OrderStatusPage({ order: initialOrder, drop }: Props) {
-  const { t } = useTranslation();
+  const { t, lang } = useTranslation();
   const [order, setOrder] = useState(initialOrder);
   const isPending = order.status === "pending";
   const isConfirmed = order.status === "confirmed";
@@ -53,7 +53,7 @@ export function OrderStatusPage({ order: initialOrder, drop }: Props) {
 
   const flavorName = drop.flavor_name;
   const totalFormatted = formatCents(order.total_cents);
-  const pickupDay = formatDay(drop.pickup_date);
+  const pickupDay = formatDay(drop.pickup_date, lang);
 
   // ─── Confirmed state ───
   if (isConfirmed) {

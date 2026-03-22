@@ -3,7 +3,9 @@ export function formatCents(cents: number, decimals: 0 | 2 = 2): string {
   return `$${(cents / 100).toFixed(decimals)}`;
 }
 
-const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+const DAYS_EN = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+const DAYS_ES = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
+const DAYS_MAP: Record<string, string[]> = { en: DAYS_EN, es: DAYS_ES };
 
 /**
  * Extract year/month/day from a date string without any timezone conversion.
@@ -27,16 +29,18 @@ export function parseLocalDate(dateStr: string): Date {
 }
 
 /** Get the weekday name for a date string. Pure string math — no timezone issues. */
-export function formatDay(dateStr: string): string {
+export function formatDay(dateStr: string, lang: string = "en"): string {
   const [y, m, d] = ymd(dateStr);
-  return DAYS[new Date(y, m, d).getDay()];
+  const days = DAYS_MAP[lang] || DAYS_EN;
+  return days[new Date(y, m, d).getDay()];
 }
 
 /** Shift a date string by N days and return the weekday name. Pure string math. */
-export function formatDayOffset(dateStr: string, days: number): string {
+export function formatDayOffset(dateStr: string, days: number, lang: string = "en"): string {
   const [y, m, d] = ymd(dateStr);
   const shifted = new Date(y, m, d + days);
-  return DAYS[shifted.getDay()];
+  const dayNames = DAYS_MAP[lang] || DAYS_EN;
+  return dayNames[shifted.getDay()];
 }
 
 /**
