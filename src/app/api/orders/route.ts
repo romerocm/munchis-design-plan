@@ -54,9 +54,11 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // Expire stale orders first to free capacity
-  // Expire stale orders (best effort, pg_cron is the primary mechanism)
-  try { await supabase.rpc("expire_stale_orders"); } catch { /* pg_cron handles this */ }
+  // Expire stale orders first to free capacity (also sends push for each expired)
+  try {
+    const { expireOrdersWithPush } = await import("@/lib/orders/expire-with-push");
+    await expireOrdersWithPush();
+  } catch { /* best effort */ }
 
   // Validate quantity is a positive integer
   const qty = Math.floor(Number(quantity));
@@ -133,6 +135,22 @@ export async function POST(req: NextRequest) {
     url: "/parrot/dashboard?tab=orders",
     tag: "new-order",
   }).catch((err) => console.error("Push notification failed:", err));
+
+  // Check if drop just hit capacity — notify baker
+  const { count } = await supabase
+    .from("orders")
+    .select("*", { count: "exact", head: true })
+    .eq("drop_id", drop_id)
+    .in("status", ["pending", "confirmed"]);
+  const remaining = drop.capacity - (count ?? 0);
+  if (remaining <= 0) {
+    await sendPushToAll({
+      title: `Sold out! 🎉`,
+      body: `All ${drop.capacity} spots claimed for ${drop.flavor_name}`,
+      url: "/parrot/dashboard",
+      tag: "drop-sold-out",
+    }).catch((err) => console.error("Push notification failed:", err));
+  }
 
   // Fire-and-forget: send order received WhatsApp notification
   sendWhatsApp({
