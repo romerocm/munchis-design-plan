@@ -18,11 +18,11 @@ export async function POST(req: NextRequest) {
   }
 
   // File validation
-  const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"];
+  const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/heic", "image/heif"];
   const MAX_SIZE = 5 * 1024 * 1024; // 5MB
 
   if (!ALLOWED_TYPES.includes(file.type)) {
-    return NextResponse.json({ error: "Only JPEG, PNG, and WebP images allowed" }, { status: 400 });
+    return NextResponse.json({ error: "Only JPEG, PNG, WebP, and HEIC images allowed" }, { status: 400 });
   }
   if (file.size > MAX_SIZE) {
     return NextResponse.json({ error: "File too large (max 5MB)" }, { status: 400 });
@@ -31,8 +31,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Type must be 'hero' or 'flavor'" }, { status: 400 });
   }
 
-  const ext = file.name.split(".").pop() || "jpg";
-  const path = `${dropId}/${type}.${ext}`;
+  // Use fixed path (no extension) so upsert always replaces the same file
+  const path = `${dropId}/${type}`;
 
   // Upload to storage
   const { error: uploadError } = await supabase.storage

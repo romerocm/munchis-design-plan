@@ -1,0 +1,66 @@
+/** Order flow: order sheet, pay-now, confirmed, order status page */
+const order = {
+  // ── Order sheet ──
+  "orderSheet.stepOf": "Step {{current}} of {{total}}",
+  "orderSheet.yourOrder": "Your order",
+  "orderSheet.max": "Max {{count}}",
+  "orderSheet.bakedThisSaturday": "Baked fresh this Saturday",
+  "orderSheet.totalTreat": "Total · {{count}} treat",
+  "orderSheet.totalTreats": "Total · {{count}} treats",
+  "orderSheet.continueCheckout": "Continue to checkout",
+  "orderSheet.paymentLinkNote": "You'll receive a payment link to confirm",
+  "orderSheet.almostThere": "Almost there",
+  "orderSheet.treats": "treats",
+  "orderSheet.yourName": "Your name",
+  "orderSheet.whatsappNumber": "WhatsApp number",
+  "orderSheet.emailOptional": "Email (optional)",
+  "orderSheet.emailPlaceholder": "For order updates",
+  "orderSheet.pickupSundayAt": "Pickup Sunday at {{location}}",
+  "orderSheet.reserving": "Reserving...",
+  "orderSheet.reserveMyTreats": "Reserve my treats",
+  "orderSheet.whatsappPayNote": "We'll send a payment link to your WhatsApp. Pay within 2 hours to confirm your order.",
+  "orderSheet.nameRequired": "Name and WhatsApp are required",
+  "orderSheet.onlyLeft": "Only {{count}} left. Reduce your quantity and try again.",
+  "orderSheet.hitCapacity": "This drop just hit capacity. No more orders can be placed.",
+  "orderSheet.tooFast": "You're moving fast! Please wait {{seconds}} seconds and try again.",
+  "orderSheet.connectionError": "Connection error. Please try again.",
+
+  // ── Pay-now ──
+  "payNow.orderReserved": "Order reserved!",
+  "payNow.payWithin": "Pay within 20 minutes to lock in your order. Everything will be baked fresh by hand, just for you.",
+  "payNow.bakedPickup": "Baked fresh {{bakingDay}} · Pickup {{pickupDay}} · {{location}}",
+  "payNow.total": "Total",
+  "payNow.openPayment": "Open payment link",
+  "payNow.sentToWhatsApp": "Also sent to your WhatsApp",
+
+  // ── Confirmed ──
+  "confirmed.paymentConfirmed": "PAYMENT CONFIRMED",
+  "confirmed.youGotYours": "You got yours!",
+  "confirmed.bakedFreshScratch": "Your order will be baked fresh from scratch",
+  "confirmed.bakedForYou": "Baked from scratch, just for you",
+  "confirmed.shareStories": "Share to Stories",
+  "confirmed.orSaveScreenshot": "or save screenshot",
+
+  // ── Order status page ──
+  "orderStatus.youGotYours": "You got yours!",
+  "orderStatus.paymentConfirmedDesc": "Payment confirmed. We'll bake your cookies fresh this Saturday.",
+  "orderStatus.cookiePhoto": "Cookie photo",
+  "orderStatus.cookies": "cookies",
+  "orderStatus.pickupAt": "Pickup {{day}} at {{location}}",
+  "orderStatus.pickupReminder": "Pickup {{day}} {{startTime}}–{{endTime}} at {{location}} · We'll WhatsApp you a reminder",
+  "orderStatus.backToMunchis": "Back to munchis",
+  "orderStatus.orderExpired": "Order expired",
+  "orderStatus.expiredDesc": "The 2-hour payment window has passed. Your spot has been released. Don't worry — you can place a new order if the drop is still open.",
+  "orderStatus.reserved": "Reserved",
+  "orderStatus.pay": "Pay",
+  "orderStatus.pickup": "Pickup",
+  "orderStatus.orderReserved": "Order reserved!",
+  "orderStatus.payWithin": "Pay within 20 minutes to lock in your order. Everything will be baked fresh by hand, just for you.",
+  "orderStatus.remainingToPay": "remaining to pay",
+  "orderStatus.total": "Total",
+  "orderStatus.bakedPickup": "Baked fresh · Pickup {{day}} · {{location}}",
+  "orderStatus.openPayment": "Open payment link",
+  "orderStatus.paymentLinkSent": "Payment link also sent to your WhatsApp",
+} as const;
+
+export default order;

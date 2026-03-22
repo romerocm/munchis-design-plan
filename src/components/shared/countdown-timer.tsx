@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useTranslation } from "@/lib/i18n/context";
 
 interface CountdownTimerProps {
   targetDate: string;
@@ -22,6 +23,7 @@ function getTimeLeft(target: string) {
 }
 
 export function CountdownTimer({ targetDate, label, compact }: CountdownTimerProps) {
+  const { t } = useTranslation();
   // Start null to avoid SSR/client hydration mismatch from Date.now()
   const [time, setTime] = useState<ReturnType<typeof getTimeLeft> | null>(null);
 
@@ -33,6 +35,8 @@ export function CountdownTimer({ targetDate, label, compact }: CountdownTimerPro
     return () => clearInterval(interval);
   }, [targetDate]);
 
+  const units = [t("countdown.days"), t("countdown.hrs"), t("countdown.min"), t("countdown.sec")];
+
   // Render placeholder during SSR / first paint to avoid hydration mismatch
   if (!time) {
     if (compact) return <span className="text-sm font-semibold text-forest/60">&nbsp;</span>;
@@ -42,11 +46,11 @@ export function CountdownTimer({ targetDate, label, compact }: CountdownTimerPro
           <p className="text-xs font-medium text-forest/40 uppercase tracking-wider">{label}</p>
         )}
         <div className="flex items-center gap-1.5">
-          {["Days", "Hrs", "Min", "Sec"].map((u, i) => (
+          {units.map((u, i) => (
             <div key={u} className="flex flex-col items-center">
               {i > 0 && <span className="font-display font-black text-lg text-forest/25 -mt-4">:</span>}
-              <div className={`${u === "Sec" ? "w-12 h-12" : "w-14 h-14"} rounded-xl bg-white flex items-center justify-center`}>
-                <span className={`font-display font-black ${u === "Sec" ? "text-xl text-forest/50" : "text-2xl text-forest"}`}>
+              <div className={`${u === units[3] ? "w-12 h-12" : "w-14 h-14"} rounded-xl bg-white flex items-center justify-center`}>
+                <span className={`font-display font-black ${u === units[3] ? "text-xl text-forest/50" : "text-2xl text-forest"}`}>
                   –
                 </span>
               </div>
@@ -60,17 +64,19 @@ export function CountdownTimer({ targetDate, label, compact }: CountdownTimerPro
 
   if (time.expired) {
     return (
-      <p className="text-sm text-forest/40 text-center">Orders are closed</p>
+      <p className="text-sm text-forest/40 text-center">{t("countdown.expired")}</p>
     );
   }
 
   if (compact) {
     return (
       <span className="text-sm font-semibold text-forest/60">
-        {time.days}d {time.hours}h {time.minutes}m {time.seconds}s left
+        {time.days}d {time.hours}h {time.minutes}m {time.seconds}s {t("countdown.left")}
       </span>
     );
   }
+
+  const values = [time.days, time.hours, time.minutes, time.seconds];
 
   return (
     <div className="flex items-center gap-3">
@@ -80,55 +86,21 @@ export function CountdownTimer({ targetDate, label, compact }: CountdownTimerPro
         </p>
       )}
       <div className="flex items-center gap-1.5">
-        <div className="flex flex-col items-center">
-          <div className="w-14 h-14 rounded-xl bg-white flex items-center justify-center">
-            <span className="font-display font-black text-2xl text-forest">
-              {time.days}
+        {values.map((val, i) => (
+          <div key={i} className="flex flex-col items-center">
+            {i > 0 && (
+              <span className="font-display font-black text-lg text-forest/25 -mt-4">:</span>
+            )}
+            <div className={`${i === 3 ? "w-12 h-12" : "w-14 h-14"} rounded-xl bg-white flex items-center justify-center`}>
+              <span className={`font-display font-black ${i === 3 ? "text-xl text-forest/50" : "text-2xl text-forest"}`}>
+                {val}
+              </span>
+            </div>
+            <span className="text-[10px] font-semibold text-forest/35 uppercase tracking-wider mt-1">
+              {units[i]}
             </span>
           </div>
-          <span className="text-[10px] font-semibold text-forest/35 uppercase tracking-wider mt-1">
-            Days
-          </span>
-        </div>
-        <span className="font-display font-black text-lg text-forest/25 -mt-4">
-          :
-        </span>
-        <div className="flex flex-col items-center">
-          <div className="w-14 h-14 rounded-xl bg-white flex items-center justify-center">
-            <span className="font-display font-black text-2xl text-forest">
-              {time.hours}
-            </span>
-          </div>
-          <span className="text-[10px] font-semibold text-forest/35 uppercase tracking-wider mt-1">
-            Hrs
-          </span>
-        </div>
-        <span className="font-display font-black text-lg text-forest/25 -mt-4">
-          :
-        </span>
-        <div className="flex flex-col items-center">
-          <div className="w-14 h-14 rounded-xl bg-white flex items-center justify-center">
-            <span className="font-display font-black text-2xl text-forest">
-              {time.minutes}
-            </span>
-          </div>
-          <span className="text-[10px] font-semibold text-forest/35 uppercase tracking-wider mt-1">
-            Min
-          </span>
-        </div>
-        <span className="font-display font-black text-lg text-forest/25 -mt-4">
-          :
-        </span>
-        <div className="flex flex-col items-center">
-          <div className="w-12 h-12 rounded-xl bg-white flex items-center justify-center">
-            <span className="font-display font-black text-xl text-forest/50">
-              {time.seconds}
-            </span>
-          </div>
-          <span className="text-[10px] font-semibold text-forest/35 uppercase tracking-wider mt-1">
-            Sec
-          </span>
-        </div>
+        ))}
       </div>
     </div>
   );

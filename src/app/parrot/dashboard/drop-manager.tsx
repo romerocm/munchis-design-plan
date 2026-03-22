@@ -21,6 +21,7 @@ interface Props {
 export function DropManager({ drop: initialDrop, recipes = [], onClose }: Props) {
   const [drop, setDrop] = useState(initialDrop);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState<"hero" | "flavor" | null>(null);
   const [editing, setEditing] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
@@ -58,27 +59,43 @@ export function DropManager({ drop: initialDrop, recipes = [], onClose }: Props)
   async function uploadImage(file: File, type: "hero" | "flavor") {
     const token = await getToken();
     if (!token) return;
-    setSaving(true);
+    setUploading(type);
 
     const formData = new FormData();
     formData.append("file", file);
     formData.append("dropId", drop.id);
     formData.append("type", type);
 
-    const res = await fetch("/api/parrot/upload", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${token}` },
-      body: formData,
-    });
+    try {
+      const res = await fetch("/api/parrot/upload", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
+      });
 
-    if (res.ok) {
-      const { url } = await res.json();
-      setDrop((d) => ({
-        ...d,
-        [type === "hero" ? "hero_image_url" : "flavor_image_url"]: url,
-      }));
+      if (res.ok) {
+        const { url } = await res.json();
+        // Append cache-buster so browser fetches the new image
+        const freshUrl = `${url}?t=${Date.now()}`;
+        setDrop((d) => ({
+          ...d,
+          [type === "hero" ? "hero_image_url" : "flavor_image_url"]: freshUrl,
+        }));
+        setError(null);
+      } else {
+        const data = await res.json().catch(() => ({ error: "Upload failed" }));
+        setError(data.error || "Upload failed");
+        setTimeout(() => setError(null), 4000);
+      }
+    } catch {
+      setError("Network error — check your connection");
+      setTimeout(() => setError(null), 4000);
     }
-    setSaving(false);
+
+    setUploading(null);
+    // Reset file input so re-selecting the same file triggers onChange
+    if (type === "hero" && heroInputRef.current) heroInputRef.current.value = "";
+    if (type === "flavor" && flavorInputRef.current) flavorInputRef.current.value = "";
   }
 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -189,7 +206,7 @@ export function DropManager({ drop: initialDrop, recipes = [], onClose }: Props)
         {/* Hero Image */}
         <div
           className="mx-3 mt-3 rounded-xl overflow-hidden bg-forest/5 aspect-[342/200] relative cursor-pointer group"
-          onClick={() => heroInputRef.current?.click()}
+          onClick={() => !uploading && heroInputRef.current?.click()}
         >
           {drop.hero_image_url ? (
             <img
@@ -202,11 +219,18 @@ export function DropManager({ drop: initialDrop, recipes = [], onClose }: Props)
               Tap to upload hero photo
             </div>
           )}
-          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition flex items-center justify-center">
-            <span className="text-white text-sm font-semibold opacity-0 group-hover:opacity-100 transition">
-              Change photo
-            </span>
-          </div>
+          {uploading === "hero" ? (
+            <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center gap-2">
+              <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              <span className="text-white text-sm font-semibold">Uploading...</span>
+            </div>
+          ) : (
+            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition flex items-center justify-center">
+              <span className="text-white text-sm font-semibold opacity-0 group-hover:opacity-100 transition">
+                Change photo
+              </span>
+            </div>
+          )}
           <input
             ref={heroInputRef}
             type="file"
@@ -292,7 +316,7 @@ export function DropManager({ drop: initialDrop, recipes = [], onClose }: Props)
           {/* Flavor Image */}
           <div
             className="aspect-[342/180] bg-forest/5 relative cursor-pointer group overflow-hidden"
-            onClick={() => flavorInputRef.current?.click()}
+            onClick={() => !uploading && flavorInputRef.current?.click()}
           >
             {drop.flavor_image_url ? (
               <img
@@ -305,11 +329,18 @@ export function DropManager({ drop: initialDrop, recipes = [], onClose }: Props)
                 Tap to upload flavor photo
               </div>
             )}
-            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition flex items-center justify-center">
-              <span className="text-white text-sm font-semibold opacity-0 group-hover:opacity-100 transition">
-                Change photo
-              </span>
-            </div>
+            {uploading === "flavor" ? (
+              <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center gap-2">
+                <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                <span className="text-white text-sm font-semibold">Uploading...</span>
+              </div>
+            ) : (
+              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition flex items-center justify-center">
+                <span className="text-white text-sm font-semibold opacity-0 group-hover:opacity-100 transition">
+                  Change photo
+                </span>
+              </div>
+            )}
             <input
               ref={flavorInputRef}
               type="file"

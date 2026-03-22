@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import { MAX_ORDER_QUANTITY } from "@/lib/orders/constants";
 import { PhoneInput } from "./shared/phone-input";
 import { formatCents, formatTime12 } from "@/lib/format";
+import { useTranslation } from "@/lib/i18n/context";
 import type { Drop } from "@/types/database";
 
 interface OrderSheetProps {
@@ -23,6 +24,7 @@ interface OrderSheetProps {
 type Step = "quantity" | "contact";
 
 export function OrderSheet({ drop, remaining, onClose, onOrderComplete }: OrderSheetProps) {
+  const { t } = useTranslation();
   const [step, setStep] = useState<Step>("quantity");
   const [quantity, setQuantity] = useState(Math.min(3, Math.min(MAX_ORDER_QUANTITY, remaining)));
   const [name, setName] = useState("");
@@ -145,7 +147,7 @@ export function OrderSheet({ drop, remaining, onClose, onOrderComplete }: OrderS
 
   async function handleSubmit() {
     if (!name.trim() || !whatsapp.trim()) {
-      setError("Name and WhatsApp are required");
+      setError(t("orderSheet.nameRequired"));
       return;
     }
     setLoading(true);
@@ -169,14 +171,14 @@ export function OrderSheet({ drop, remaining, onClose, onOrderComplete }: OrderS
         if (res.status === 409) {
           setError(
             data.remaining > 0
-              ? `Only ${data.remaining} left. Reduce your quantity and try again.`
-              : "This drop just hit capacity. No more orders can be placed."
+              ? t("orderSheet.onlyLeft", { count: data.remaining })
+              : t("orderSheet.hitCapacity")
           );
         } else if (res.status === 429) {
           const retryAfter = res.headers.get("Retry-After");
           const secs = retryAfter ? parseInt(retryAfter, 10) : 30;
           setError(
-            `You're moving fast! Please wait ${secs} seconds and try again.`
+            t("orderSheet.tooFast", { seconds: secs })
           );
         } else {
           setError(data.error || "Something went wrong");
@@ -190,7 +192,7 @@ export function OrderSheet({ drop, remaining, onClose, onOrderComplete }: OrderS
         onClose();
       }
     } catch {
-      setError("Connection error. Please try again.");
+      setError(t("orderSheet.connectionError"));
     }
     setLoading(false);
   }
@@ -237,16 +239,16 @@ export function OrderSheet({ drop, remaining, onClose, onOrderComplete }: OrderS
             <div className={`w-6 h-[3px] rounded-full ${step === "quantity" ? "bg-forest" : "bg-forest"}`} />
             <div className={`w-6 h-[3px] rounded-full ${step === "contact" ? "bg-forest" : "bg-forest/12"}`} />
           </div>
-          <span className="text-xs text-forest/35">Step {step === "quantity" ? "1" : "2"} of 2</span>
+          <span className="text-xs text-forest/35">{t("orderSheet.stepOf", { current: step === "quantity" ? "1" : "2", total: "2" })}</span>
         </div>
 
         {step === "quantity" && (
           <>
             <div className="flex items-baseline justify-between mb-6">
               <h2 className="font-display font-black text-2xl text-forest">
-                Your order
+                {t("orderSheet.yourOrder")}
               </h2>
-              <span className="text-sm text-forest/40">Max {maxQty}</span>
+              <span className="text-sm text-forest/40">{t("orderSheet.max", { count: maxQty })}</span>
             </div>
 
             <div className="flex items-center gap-4 mb-6">
@@ -262,7 +264,7 @@ export function OrderSheet({ drop, remaining, onClose, onOrderComplete }: OrderS
               <div className="flex-1">
                 <p className="font-semibold text-forest">{drop.flavor_name}</p>
                 <p className="text-sm text-forest/50">
-                  {formatCents(drop.price_cents)} each
+                  {formatCents(drop.price_cents)} {t("live.each")}
                 </p>
               </div>
               <div className="flex items-center gap-0 rounded-xl bg-forest overflow-hidden">
@@ -295,12 +297,14 @@ export function OrderSheet({ drop, remaining, onClose, onOrderComplete }: OrderS
               </div>
               <div className="flex justify-between items-baseline mt-1">
                 <span className="text-sm text-forest/40">
-                  Baked fresh this Saturday
+                  {t("orderSheet.bakedThisSaturday")}
                 </span>
               </div>
               <div className="flex justify-between items-baseline mt-3">
                 <span className="font-semibold text-green-accent">
-                  Total · {quantity} {quantity === 1 ? "treat" : "treats"}
+                  {quantity === 1
+                    ? t("orderSheet.totalTreat", { count: quantity })
+                    : t("orderSheet.totalTreats", { count: quantity })}
                 </span>
                 <span className="font-display font-black text-xl text-forest">
                   {totalFormatted}
@@ -312,10 +316,10 @@ export function OrderSheet({ drop, remaining, onClose, onOrderComplete }: OrderS
               onClick={() => setStep("contact")}
               className="w-full py-4 rounded-2xl bg-forest text-white font-semibold text-base btn-press"
             >
-              Continue to checkout
+              {t("orderSheet.continueCheckout")}
             </button>
             <p className="text-xs text-center text-forest/35 mt-3">
-              You&apos;ll receive a payment link to confirm
+              {t("orderSheet.paymentLinkNote")}
             </p>
           </>
         )}
@@ -324,17 +328,17 @@ export function OrderSheet({ drop, remaining, onClose, onOrderComplete }: OrderS
           <>
             <div className="flex items-baseline justify-between mb-6">
               <h2 className="font-display font-black text-2xl text-forest">
-                Almost there
+                {t("orderSheet.almostThere")}
               </h2>
               <span className="text-sm text-forest/40">
-                {quantity} treats · {totalFormatted}
+                {`${quantity} ${t("orderSheet.treats")} · ${totalFormatted}`}
               </span>
             </div>
 
             <div className="flex flex-col gap-4 mb-6">
               <div>
                 <label className="text-xs font-semibold text-forest/40 uppercase tracking-wider block mb-2">
-                  Your name
+                  {t("orderSheet.yourName")}
                 </label>
                 <input
                   type="text"
@@ -346,7 +350,7 @@ export function OrderSheet({ drop, remaining, onClose, onOrderComplete }: OrderS
               </div>
               <div>
                 <label className="text-xs font-semibold text-forest/40 uppercase tracking-wider block mb-2">
-                  WhatsApp number
+                  {t("orderSheet.whatsappNumber")}
                 </label>
                 <PhoneInput
                   value={whatsapp}
@@ -357,13 +361,13 @@ export function OrderSheet({ drop, remaining, onClose, onOrderComplete }: OrderS
               </div>
               <div>
                 <label className="text-xs font-semibold text-forest/40 uppercase tracking-wider block mb-2">
-                  Email (optional)
+                  {t("orderSheet.emailOptional")}
                 </label>
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="For order updates"
+                  placeholder={t("orderSheet.emailPlaceholder")}
                   className="w-full px-4 py-3.5 rounded-xl bg-white text-forest placeholder:text-forest/25 outline-none focus:ring-2 focus:ring-forest/20"
                 />
               </div>
@@ -371,7 +375,7 @@ export function OrderSheet({ drop, remaining, onClose, onOrderComplete }: OrderS
 
             <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-mint mb-6">
               <span className="text-sm font-semibold text-forest">
-                Pickup Sunday at {drop.pickup_location}
+                {t("orderSheet.pickupSundayAt", { location: drop.pickup_location })}
               </span>
               <span className="text-xs text-forest/50">
                 {formatTime12(drop.pickup_time_start)}
@@ -389,11 +393,10 @@ export function OrderSheet({ drop, remaining, onClose, onOrderComplete }: OrderS
               disabled={loading}
               className="w-full py-4 rounded-2xl bg-forest text-white font-semibold text-base disabled:opacity-50"
             >
-              {loading ? "Reserving..." : "Reserve my treats"}
+              {loading ? t("orderSheet.reserving") : t("orderSheet.reserveMyTreats")}
             </button>
             <p className="text-xs text-center text-forest/35 mt-3">
-              We&apos;ll send a payment link to your WhatsApp. Pay within 2
-              hours to confirm your order.
+              {t("orderSheet.whatsappPayNote")}
             </p>
           </>
         )}
