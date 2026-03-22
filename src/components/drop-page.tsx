@@ -60,7 +60,7 @@ export function DropPage({ drop, remaining, nextDrop }: DropPageProps) {
   const [showOrder, setShowOrder] = useState(false);
   const [orderResult, setOrderResult] = useState<OrderResult | null>(null);
   const router = useRouter();
-  const { t } = useTranslation();
+  const { t, lang } = useTranslation();
 
   function goTo(screen: LiveScreen, dir: Direction = "forward") {
     setDirection(dir);
@@ -123,7 +123,7 @@ export function DropPage({ drop, remaining, nextDrop }: DropPageProps) {
                   opacity="0.5"
                 />
               </svg>
-              {t("preDrop.bakedPickup", { bakingDay: formatDayOffset(drop.pickup_date, -1), pickupDay: formatDay(drop.pickup_date), location: drop.pickup_location })}
+              {t("preDrop.bakedPickup", { bakingDay: formatDayOffset(drop.pickup_date, -1, lang), pickupDay: formatDay(drop.pickup_date, lang), location: drop.pickup_location })}
             </div>
           )}
         </div>
@@ -156,9 +156,9 @@ export function DropPage({ drop, remaining, nextDrop }: DropPageProps) {
   ) {
     const orderedCount = drop.capacity - remaining;
 
-    const bakingDay = formatDayOffset(drop.pickup_date, -1);
-    const ingredientsDay = formatDayOffset(drop.pickup_date, -2);
-    const pickupDay = formatDay(drop.pickup_date);
+    const bakingDay = formatDayOffset(drop.pickup_date, -1, lang);
+    const ingredientsDay = formatDayOffset(drop.pickup_date, -2, lang);
+    const pickupDay = formatDay(drop.pickup_date, lang);
 
     const soldOut = remaining === 0;
     const todayCST = utcToCST(new Date().toISOString()).date;
@@ -404,7 +404,7 @@ export function DropPage({ drop, remaining, nextDrop }: DropPageProps) {
             </span>
           </div>
           <p className="text-xs text-forest/40 mb-3">
-            {t("payNow.bakedPickup", { bakingDay: formatDayOffset(drop.pickup_date, -1), pickupDay: formatDay(drop.pickup_date), location: drop.pickup_location })}
+            {t("payNow.bakedPickup", { bakingDay: formatDayOffset(drop.pickup_date, -1, lang), pickupDay: formatDay(drop.pickup_date, lang), location: drop.pickup_location })}
           </p>
           <div className="flex justify-between items-baseline border-t border-forest/8 pt-3">
             <span className="font-semibold text-forest">{t("payNow.total")}</span>
@@ -525,7 +525,7 @@ export function DropPage({ drop, remaining, nextDrop }: DropPageProps) {
               />
             </svg>
             <span className="text-[11px] font-semibold text-white tracking-wide">
-              {drop.pickup_location} · {formatDay(drop.pickup_date)} {drop.pickup_time_start ? formatTime12(drop.pickup_time_start) : ""}{drop.pickup_time_end ? `–${formatTime12(drop.pickup_time_end)}` : ""}
+              {drop.pickup_location} · {formatDay(drop.pickup_date, lang)} {drop.pickup_time_start ? formatTime12(drop.pickup_time_start) : ""}{drop.pickup_time_end ? `–${formatTime12(drop.pickup_time_end)}` : ""}
             </span>
           </div>
         </div>

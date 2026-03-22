@@ -16,6 +16,14 @@ vi.mock("@/lib/wompi/client", () => ({
   }),
 }));
 
+vi.mock("@/lib/orders/expire-with-push", () => ({
+  expireOrdersWithPush: vi.fn().mockResolvedValue(0),
+}));
+
+vi.mock("@/lib/push/send", () => ({
+  sendPushToAll: vi.fn().mockResolvedValue(undefined),
+}));
+
 import { POST } from "@/app/api/orders/route";
 
 describe("POST /api/orders", () => {

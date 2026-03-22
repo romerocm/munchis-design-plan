@@ -28,7 +28,7 @@ const cx = "max-w-[1280px] mx-auto w-full px-12";
 export function DesktopDropPage({ drop, remaining, nextDrop }: Props) {
   const [showOrder, setShowOrder] = useState(false);
   const router = useRouter();
-  const { t } = useTranslation();
+  const { t, lang } = useTranslation();
 
   const isLive = drop?.status === "live";
   const isClosed = drop?.status === "closed" || drop?.status === "baking" || drop?.status === "ready" || drop?.status === "completed";
@@ -173,7 +173,7 @@ export function DesktopDropPage({ drop, remaining, nextDrop }: Props) {
                   />
                 </svg>
                 <span className="text-[11px] font-semibold text-white tracking-wide">
-                  {drop.pickup_location} · {formatDay(drop.pickup_date)} {drop.pickup_time_start ? formatTime12(drop.pickup_time_start) : ""}{drop.pickup_time_end ? `–${formatTime12(drop.pickup_time_end)}` : ""}
+                  {drop.pickup_location} · {formatDay(drop.pickup_date, lang)} {drop.pickup_time_start ? formatTime12(drop.pickup_time_start) : ""}{drop.pickup_time_end ? `–${formatTime12(drop.pickup_time_end)}` : ""}
                 </span>
               </div>
             </div>
@@ -209,7 +209,7 @@ export function DesktopDropPage({ drop, remaining, nextDrop }: Props) {
         const soldOut = remaining === 0;
         const todayCST = utcToCST(new Date().toISOString()).date;
         const isPickupDay = todayCST >= drop.pickup_date;
-        const pickupDay = formatDay(drop.pickup_date);
+        const pickupDay = formatDay(drop.pickup_date, lang);
         const heading = drop.status === "baking"
           ? t("desktop.closedBakingHeading")
           : drop.status === "ready" && isPickupDay

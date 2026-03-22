@@ -17,16 +17,16 @@ interface TimelineStep {
   state: StepState;
 }
 
-function buildSteps(drop: Drop, orderedCount: number, t: (key: any, params?: any) => string): TimelineStep[] {
+function buildSteps(drop: Drop, orderedCount: number, t: (key: any, params?: any) => string, lang: string): TimelineStep[] {
   const now = new Date();
   const pickupDate = parseLocalDate(drop.pickup_date);
   const ingredientsDate = (() => { const d = parseLocalDate(drop.pickup_date); d.setDate(d.getDate() - 2); return d; })();
   const bakingDate = (() => { const d = parseLocalDate(drop.pickup_date); d.setDate(d.getDate() - 1); return d; })();
   // Use closed_at (actual close moment) if available, otherwise fall back to scheduled close
-  const closeDay = formatDay(drop.closed_at || drop.orders_close_at);
-  const ingredientsDay = formatDayOffset(drop.pickup_date, -2);
-  const bakingDay = formatDayOffset(drop.pickup_date, -1);
-  const pickupDay = formatDay(drop.pickup_date);
+  const closeDay = formatDay(drop.closed_at || drop.orders_close_at, lang);
+  const ingredientsDay = formatDayOffset(drop.pickup_date, -2, lang);
+  const bakingDay = formatDayOffset(drop.pickup_date, -1, lang);
+  const pickupDay = formatDay(drop.pickup_date, lang);
 
   // Ingredients: done if baker toggled groceries_bought_at, or if we're past that phase.
   const ingredientsDone =
@@ -42,7 +42,7 @@ function buildSteps(drop: Drop, orderedCount: number, t: (key: any, params?: any
 
   // Show actual groceries date when available
   const ingredientsDetail = drop.groceries_bought_at
-    ? `${formatDay(drop.groceries_bought_at)} · ${t("timeline.ingredientsDetail")}`
+    ? `${formatDay(drop.groceries_bought_at, lang)} · ${t("timeline.ingredientsDetail")}`
     : `${ingredientsDay} · ${t("timeline.ingredientsDetail")}`;
 
   return [
@@ -82,8 +82,8 @@ const CheckIcon = () => (
 );
 
 export function BakingTimeline({ drop, orderedCount }: BakingTimelineProps) {
-  const { t } = useTranslation();
-  const steps = buildSteps(drop, orderedCount, t);
+  const { t, lang } = useTranslation();
+  const steps = buildSteps(drop, orderedCount, t, lang);
 
   return (
     <div className="flex flex-col justify-center gap-0">

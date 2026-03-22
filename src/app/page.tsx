@@ -11,11 +11,12 @@ export const dynamic = "force-dynamic";
 async function getActiveDrop() {
   const supabase = createServerClient();
 
-  // Lazy expiration: belt-and-suspenders alongside pg_cron
+  // Lazy expiration: expire stale orders and notify baker
   try {
-    await supabase.rpc("expire_stale_orders");
+    const { expireOrdersWithPush } = await import("@/lib/orders/expire-with-push");
+    await expireOrdersWithPush();
   } catch {
-    // pg_cron handles this if RPC fails
+    // best effort — pg_cron is the backstop
   }
 
   // Lazy promotion: move scheduled drops to "live" once orders_open_at has passed
