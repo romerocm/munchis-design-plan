@@ -90,7 +90,9 @@ export function HomeTab({ drops, orders, dropStats, onEditDrop, onViewOrders, on
       {/* Header */}
       <div className="flex items-end justify-between px-4 pt-5 pb-3">
         <div className="min-w-0 flex-1 mr-3">
-          <p className="text-[13px] text-forest/45 truncate">{greeting || "\u00A0"}</p>
+          <div className="h-[34px] flex items-end">
+            <p className="text-[12px] text-forest/35 leading-[1.35] line-clamp-2">{greeting || "\u00A0"}</p>
+          </div>
           <a href="/parrot/dashboard"><img src="/images/logo-wordmark.svg" alt="munchis" className="h-7" /></a>
         </div>
         <div className="flex items-center gap-2">
