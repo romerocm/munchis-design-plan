@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@/lib/supabase/server";
 import { isSandbox, verifyWompiSignature } from "@/lib/wompi/client";
 import { sendWhatsApp } from "@/lib/twilio/client";
+import { sendPushToAll } from "@/lib/push/send";
 import {
   buildPaymentConfirmedVars,
   buildOrderCancelledVars,
@@ -73,14 +74,12 @@ export async function POST(req: NextRequest) {
 
         if (drop) {
           // Push notification to baker dashboard
-          import("@/lib/push/send").then(({ sendPushToAll }) =>
-            sendPushToAll({
-              title: "Payment confirmed!",
-              body: `${order.customer_name} paid for ${order.quantity}x ${drop.flavor_name}`,
-              url: "/parrot/dashboard?tab=orders",
-              tag: "payment-confirmed",
-            })
-          ).catch((err) => console.error("Push notification failed:", err));
+          sendPushToAll({
+            title: "Payment confirmed!",
+            body: `${order.customer_name} paid for ${order.quantity}x ${drop.flavor_name}`,
+            url: "/parrot/dashboard?tab=orders",
+            tag: "payment-confirmed",
+          }).catch((err) => console.error("Push notification failed:", err));
 
           sendWhatsApp({
             to: order.customer_whatsapp,

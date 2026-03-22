@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@/lib/supabase/server";
 import { verifyAuth } from "@/lib/auth/verify";
+import { sendPushToAll } from "@/lib/push/send";
 
 export async function POST(req: NextRequest) {
   // Only available in sandbox mode
@@ -39,14 +40,12 @@ export async function POST(req: NextRequest) {
       .eq("id", data.drop_id)
       .single();
 
-    import("@/lib/push/send").then(({ sendPushToAll }) =>
-      sendPushToAll({
-        title: "Payment confirmed!",
-        body: `${data.customer_name} paid for ${data.quantity}x ${drop?.flavor_name || "treats"}`,
-        url: "/parrot/dashboard?tab=orders",
-        tag: "payment-confirmed",
-      })
-    ).catch((err) => console.error("Push notification failed:", err));
+    sendPushToAll({
+      title: "Payment confirmed!",
+      body: `${data.customer_name} paid for ${data.quantity}x ${drop?.flavor_name || "treats"}`,
+      url: "/parrot/dashboard?tab=orders",
+      tag: "payment-confirmed",
+    }).catch((err) => console.error("Push notification failed:", err));
   }
 
   return NextResponse.json({ order: data });
