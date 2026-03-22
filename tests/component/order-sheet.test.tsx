@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import { OrderSheet } from "@/components/order-sheet";
+import { LanguageProvider } from "@/lib/i18n/context";
 import { makeLiveDrop } from "../fixtures/drops";
 
 // Mock createPortal to render inline instead of into document.body
@@ -28,12 +29,14 @@ describe("OrderSheet", () => {
 
   function renderSheet(overrides: { remaining?: number } = {}) {
     return render(
-      <OrderSheet
-        drop={drop}
-        remaining={overrides.remaining ?? 50}
-        onClose={onClose}
-        onOrderComplete={onOrderComplete}
-      />
+      <LanguageProvider>
+        <OrderSheet
+          drop={drop}
+          remaining={overrides.remaining ?? 50}
+          onClose={onClose}
+          onOrderComplete={onOrderComplete}
+        />
+      </LanguageProvider>
     );
   }
 
