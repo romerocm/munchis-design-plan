@@ -126,8 +126,8 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // Fire-and-forget: push notification to baker dashboard
-  sendPushToAll({
+  // Await push so the serverless function stays alive until it completes
+  await sendPushToAll({
     title: `New order! ${qty}x ${drop.flavor_name}`,
     body: `${nameClean} just ordered · ${formatCentsToDollars(totalCents)}`,
     url: "/parrot/dashboard?tab=orders",

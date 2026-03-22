@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
       .eq("id", data.drop_id)
       .single();
 
-    sendPushToAll({
+    await sendPushToAll({
       title: "Payment confirmed!",
       body: `${data.customer_name} paid for ${data.quantity}x ${drop?.flavor_name || "treats"}`,
       url: "/parrot/dashboard?tab=orders",
