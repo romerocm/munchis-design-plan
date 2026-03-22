@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import { CountdownTimer } from "./shared/countdown-timer";
 import { formatCents, formatDay, formatTime12 } from "@/lib/format";
+import { useTranslation } from "@/lib/i18n/context";
 import type { Drop } from "@/types/database";
 
 interface Order {
@@ -23,6 +24,7 @@ interface Props {
 }
 
 export function OrderStatusPage({ order: initialOrder, drop }: Props) {
+  const { t } = useTranslation();
   const [order, setOrder] = useState(initialOrder);
   const isPending = order.status === "pending";
   const isConfirmed = order.status === "confirmed";
@@ -70,10 +72,10 @@ export function OrderStatusPage({ order: initialOrder, drop }: Props) {
           </div>
 
           <h1 className="font-display font-black text-4xl lg:text-[56px] text-white text-center leading-none">
-            You got yours!
+            {t("orderStatus.youGotYours")}
           </h1>
           <p className="text-[15px] text-white/50 text-center">
-            Payment confirmed. We&apos;ll bake your cookies fresh this Saturday.
+            {t("orderStatus.paymentConfirmedDesc")}
           </p>
 
           {/* Share card */}
@@ -82,26 +84,26 @@ export function OrderStatusPage({ order: initialOrder, drop }: Props) {
               <img src={drop.hero_image_url} alt={flavorName} className="w-full h-[200px] object-cover" />
             ) : (
               <div className="w-full h-[200px] bg-forest/4 flex items-center justify-center">
-                <span className="text-sm text-forest/20">Cookie photo</span>
+                <span className="text-sm text-forest/20">{t("orderStatus.cookiePhoto")}</span>
               </div>
             )}
             <div className="flex flex-col items-center p-6 gap-2 text-center">
               <Image src="/images/logo-wordmark.svg" alt="munchis" width={80} height={24} className="h-4 w-auto opacity-60" />
               <span className="font-display font-black text-[22px] text-forest">{flavorName}</span>
-              <span className="text-[13px] text-forest/40">{order.quantity} cookies · {totalFormatted}</span>
-              <span className="text-xs text-forest/30">Pickup {pickupDay} at {drop.pickup_location}</span>
+              <span className="text-[13px] text-forest/40">{order.quantity} {t("orderStatus.cookies")} · {totalFormatted}</span>
+              <span className="text-xs text-forest/30">{t("orderStatus.pickupAt", { day: pickupDay, location: drop.pickup_location })}</span>
             </div>
           </div>
 
           {/* Pickup reminder */}
           <div className="flex items-center gap-2.5 px-6 py-3.5 rounded-2xl bg-white/8 max-w-full">
             <span className="text-[13px] text-white/50 text-center">
-              Pickup {pickupDay} {drop.pickup_time_start ? formatTime12(drop.pickup_time_start) : ""}–{drop.pickup_time_end ? formatTime12(drop.pickup_time_end) : ""} at {drop.pickup_location} · We&apos;ll WhatsApp you a reminder
+              {t("orderStatus.pickupReminder", { day: pickupDay, startTime: drop.pickup_time_start ? formatTime12(drop.pickup_time_start) : "", endTime: drop.pickup_time_end ? formatTime12(drop.pickup_time_end) : "", location: drop.pickup_location })}
             </span>
           </div>
 
           <a href="/" className="text-sm text-white/40 hover:text-white/60 transition">
-            Back to munchis
+            {t("orderStatus.backToMunchis")}
           </a>
         </div>
       </div>
@@ -120,16 +122,15 @@ export function OrderStatusPage({ order: initialOrder, drop }: Props) {
               <circle cx="14" cy="19" r="1" fill="rgba(27,61,47,0.3)" />
             </svg>
           </div>
-          <h1 className="font-display font-black text-3xl text-forest">Order expired</h1>
+          <h1 className="font-display font-black text-3xl text-forest">{t("orderStatus.orderExpired")}</h1>
           <p className="text-[15px] text-forest/45 leading-relaxed">
-            The 2-hour payment window has passed. Your spot has been released.
-            Don&apos;t worry — you can place a new order if the drop is still open.
+            {t("orderStatus.expiredDesc")}
           </p>
           <a
             href="/"
             className="flex items-center justify-center px-8 py-3.5 rounded-2xl bg-forest text-white font-semibold text-[15px] btn-press"
           >
-            Back to munchis
+            {t("orderStatus.backToMunchis")}
           </a>
         </div>
       </div>
@@ -146,19 +147,19 @@ export function OrderStatusPage({ order: initialOrder, drop }: Props) {
             <div className="w-5 h-5 rounded-full bg-forest flex items-center justify-center">
               <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2.5 5.5L4.5 7.5L7.5 3.5" stroke="white" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/></svg>
             </div>
-            <span className="text-xs text-forest/40">Reserved</span>
+            <span className="text-xs text-forest/40">{t("orderStatus.reserved")}</span>
           </div>
           <div className="w-6 lg:w-8 h-0.5 bg-amber/30" />
           <div className="flex items-center gap-1.5">
             <div className="w-5 h-5 rounded-full bg-amber flex items-center justify-center">
               <div className="w-1.5 h-1.5 rounded-full bg-white" />
             </div>
-            <span className="text-xs font-semibold text-amber">Pay</span>
+            <span className="text-xs font-semibold text-amber">{t("orderStatus.pay")}</span>
           </div>
           <div className="w-6 lg:w-8 h-0.5 bg-forest/8" />
           <div className="flex items-center gap-1.5">
             <div className="w-5 h-5 rounded-full border-[1.5px] border-forest/12" />
-            <span className="text-xs text-forest/25">Pickup</span>
+            <span className="text-xs text-forest/25">{t("orderStatus.pickup")}</span>
           </div>
         </div>
 
@@ -168,17 +169,17 @@ export function OrderStatusPage({ order: initialOrder, drop }: Props) {
         </div>
 
         <h1 className="font-display font-black text-3xl lg:text-[40px] text-forest text-center leading-tight">
-          Order reserved!
+          {t("orderStatus.orderReserved")}
         </h1>
         <p className="text-[15px] text-forest/45 text-center leading-relaxed max-w-[360px]">
-          Pay within 20 minutes to lock in your order. Everything will be baked fresh by hand, just for you.
+          {t("orderStatus.payWithin")}
         </p>
 
         {/* Countdown */}
         <div className="flex items-center gap-2 px-7 py-3.5 rounded-full border-2 border-amber bg-amber/6">
           <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="7.5" stroke="#C4841D" strokeWidth="1.5"/><path d="M9 5.5v4l2.5 1.5" stroke="#C4841D" strokeWidth="1.5" strokeLinecap="round"/></svg>
           <CountdownTimer targetDate={order.payment_expires_at} label="" compact />
-          <span className="text-amber font-bold text-sm lg:text-base">remaining to pay</span>
+          <span className="text-amber font-bold text-sm lg:text-base">{t("orderStatus.remainingToPay")}</span>
         </div>
 
         {/* Order details card */}
@@ -189,13 +190,13 @@ export function OrderStatusPage({ order: initialOrder, drop }: Props) {
           </div>
           <div className="h-px bg-forest/6 mx-5" />
           <div className="flex justify-between items-baseline p-5 pt-3">
-            <span className="text-[15px] font-semibold text-forest">Total</span>
+            <span className="text-[15px] font-semibold text-forest">{t("orderStatus.total")}</span>
             <span className="font-display font-black text-2xl text-forest">{totalFormatted}</span>
           </div>
           <div className="h-px bg-forest/6 mx-5" />
           <div className="flex items-center gap-2 p-5 pt-3">
             <span className="text-[13px] text-forest/40">
-              Baked fresh · Pickup {pickupDay} · {drop.pickup_location}
+              {t("orderStatus.bakedPickup", { day: pickupDay, location: drop.pickup_location })}
             </span>
           </div>
         </div>
@@ -208,11 +209,11 @@ export function OrderStatusPage({ order: initialOrder, drop }: Props) {
             rel="noopener noreferrer"
             className="flex items-center justify-center gap-2 w-full max-w-[360px] py-4 rounded-2xl bg-forest text-white font-semibold text-base btn-press"
           >
-            Open payment link
+            {t("orderStatus.openPayment")}
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M5 3h6v6M11 3L3 11" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
           </a>
         )}
-        <p className="text-[13px] text-forest/45 font-medium">Payment link also sent to your WhatsApp</p>
+        <p className="text-[13px] text-forest/45 font-medium">{t("orderStatus.paymentLinkSent")}</p>
       </div>
     </div>
   );

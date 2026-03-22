@@ -1,13 +1,16 @@
 "use client";
 
 import Lottie from "lottie-react";
+import { useTranslation } from "@/lib/i18n/context";
 import cookingBg from "../../../public/animations/cooking-bg.json";
 
 export function HowItWorks() {
+  const { t } = useTranslation();
+
   const steps = [
-    { num: 1, title: "Order by Thursday", desc: "Pick your quantity before the drop closes" },
-    { num: 2, title: "We bake Saturday", desc: "Fresh ingredients, handmade from scratch" },
-    { num: 3, title: "Pick up Sunday", desc: "Grab your bag at this week's location" },
+    { num: 1, title: t("howItWorks.step1Title"), desc: t("howItWorks.step1Desc") },
+    { num: 2, title: t("howItWorks.step2Title"), desc: t("howItWorks.step2Desc") },
+    { num: 3, title: t("howItWorks.step3Title"), desc: t("howItWorks.step3Desc") },
   ];
 
   const lottieProps = {

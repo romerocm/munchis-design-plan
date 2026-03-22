@@ -72,6 +72,16 @@ export async function POST(req: NextRequest) {
           .single();
 
         if (drop) {
+          // Push notification to baker dashboard
+          import("@/lib/push/send").then(({ sendPushToAll }) =>
+            sendPushToAll({
+              title: "Payment confirmed!",
+              body: `${order.customer_name} paid for ${order.quantity}x ${drop.flavor_name}`,
+              url: "/parrot/dashboard?tab=orders",
+              tag: "payment-confirmed",
+            })
+          ).catch((err) => console.error("Push notification failed:", err));
+
           sendWhatsApp({
             to: order.customer_whatsapp,
             templateName: "payment_confirmed",

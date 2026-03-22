@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslation } from "@/lib/i18n/context";
 
 /**
  * Phone input with +503 prefix for El Salvador.
@@ -40,6 +41,7 @@ function toE164(raw: string, isLocal: boolean): string {
 }
 
 export function PhoneInput({ value, onChange, placeholder, className = "", onSubmit, bgClass = "bg-white/50" }: PhoneInputProps) {
+  const { t } = useTranslation();
   const [isLocal, setIsLocal] = useState(true);
   const [localDisplay, setLocalDisplay] = useState("");
   const [intlDisplay, setIntlDisplay] = useState("");
@@ -84,7 +86,7 @@ export function PhoneInput({ value, onChange, placeholder, className = "", onSub
           onClick={() => switchMode(true)}
           className="text-[11px] text-forest/30 hover:text-forest/50 transition-colors text-left"
         >
-          Back to El Salvador (+503)
+          {t("phone.backToLocal")}
         </button>
       </div>
     );
@@ -113,7 +115,7 @@ export function PhoneInput({ value, onChange, placeholder, className = "", onSub
         onClick={() => switchMode(false)}
         className="text-[11px] text-forest/30 hover:text-forest/50 transition-colors self-start"
       >
-        Not in El Salvador?
+        {t("phone.notInElSalvador")}
       </button>
     </div>
   );

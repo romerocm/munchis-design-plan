@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { useTranslation } from "@/lib/i18n/context";
 import { CountdownTimer } from "../shared/countdown-timer";
 import { NotifyForm } from "../shared/notify-form";
 import { OrderSheet } from "../order-sheet";
@@ -13,6 +14,7 @@ import { Footer } from "./footer";
 import { BakingTimeline } from "../shared/baking-timeline";
 import { formatDropNumber } from "@/lib/drops/constants";
 import { formatCents, formatDay, formatTime12, utcToCST } from "@/lib/format";
+import { LanguagePicker } from "../shared/language-picker";
 import type { Drop } from "@/types/database";
 
 interface Props {
@@ -26,6 +28,7 @@ const cx = "max-w-[1280px] mx-auto w-full px-12";
 export function DesktopDropPage({ drop, remaining, nextDrop }: Props) {
   const [showOrder, setShowOrder] = useState(false);
   const router = useRouter();
+  const { t } = useTranslation();
 
   const isLive = drop?.status === "live";
   const isClosed = drop?.status === "closed" || drop?.status === "baking" || drop?.status === "ready" || drop?.status === "completed";
@@ -47,41 +50,32 @@ export function DesktopDropPage({ drop, remaining, nextDrop }: Props) {
           />
         </a>
         <div className="flex items-center gap-4">
-          <a
-            href="#meet-heidi"
-            className="text-sm text-forest/50 hover:text-forest transition"
-            onClick={(e) => {
-              e.preventDefault();
-              document.getElementById("meet-heidi")?.scrollIntoView({ behavior: "smooth" });
-            }}
-          >
-            About
-          </a>
+          <LanguagePicker />
           {isLive && remaining > 0 && (
             <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-green-accent/8 border border-green-accent/20">
               <div className="w-2 h-2 rounded-full bg-green-accent animate-pulse" />
-              <span className="text-[13px] font-semibold text-forest">DROP LIVE</span>
+              <span className="text-[13px] font-semibold text-forest">{t("nav.dropLive")}</span>
             </div>
           )}
           {isLive && remaining <= 0 && (
             <div className="px-3.5 py-1.5 rounded-full border border-amber/30 bg-amber/8">
-              <span className="text-xs font-semibold text-amber">SOLD OUT</span>
+              <span className="text-xs font-semibold text-amber">{t("nav.soldOut")}</span>
             </div>
           )}
           {(!drop || drop.status === "draft" || drop.status === "scheduled") && (
             <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-forest/10">
               <div className="w-1.5 h-1.5 rounded-full bg-amber" />
-              <span className="text-xs font-semibold text-forest/50">COMING SOON</span>
+              <span className="text-xs font-semibold text-forest/50">{t("nav.comingSoon")}</span>
             </div>
           )}
           {isClosed && (
             <div className={`px-3.5 py-1.5 rounded-full border ${remaining === 0 ? "border-amber/30 bg-amber/8" : "border-forest/10"}`}>
               <span className={`text-xs font-semibold ${remaining === 0 ? "text-amber" : "text-forest/50"}`}>
                 {drop?.status === "ready" && utcToCST(new Date().toISOString()).date >= drop.pickup_date
-                  ? "READY FOR PICKUP"
+                  ? t("nav.readyForPickup")
                   : drop?.status === "ready"
-                  ? "BAKING DONE"
-                  : remaining === 0 ? "SOLD OUT" : "ORDERS CLOSED"}
+                  ? t("nav.bakingDone")
+                  : remaining === 0 ? t("nav.soldOut") : t("nav.ordersClosed")}
               </span>
             </div>
           )}
@@ -95,7 +89,7 @@ export function DesktopDropPage({ drop, remaining, nextDrop }: Props) {
             {/* Left content */}
             <div className="flex-1 flex flex-col justify-center p-12 gap-4 bg-white">
               <p className="text-xs font-semibold text-amber uppercase tracking-wider">
-                THIS WEEK&apos;S DROP
+                {t("live.thisWeeksDrop")}
               </p>
               <h1 className="font-display font-black text-5xl text-forest leading-[1.05]">
                 {drop.flavor_name}
@@ -105,7 +99,7 @@ export function DesktopDropPage({ drop, remaining, nextDrop }: Props) {
               </p>
               <div className="flex items-baseline gap-2">
                 <span className="font-display font-black text-3xl text-forest">{priceFormatted}</span>
-                <span className="text-sm text-forest/35">each</span>
+                <span className="text-sm text-forest/35">{t("live.each")}</span>
               </div>
               {/* CTA + Countdown + Scarcity — tightly coupled (Fitts' Law) */}
               <div className="flex flex-col gap-4 pt-2">
@@ -116,16 +110,16 @@ export function DesktopDropPage({ drop, remaining, nextDrop }: Props) {
                       <div className="h-1.5 rounded-full bg-forest/6 w-full overflow-hidden">
                         <div className="h-full rounded-full bg-amber w-full" />
                       </div>
-                      <span className="text-xs font-semibold text-amber">{drop.capacity} of {drop.capacity} claimed — sold out</span>
+                      <span className="text-xs font-semibold text-amber">{t("live.claimedSoldOut", { capacity: drop.capacity })}</span>
                     </div>
                     {/* FOMO nudge + inline notify */}
                     <div className="flex flex-col gap-3 max-w-[340px]">
                       <p className="text-sm text-forest/50">
-                        This drop went fast. Get a heads-up next time so you don&apos;t miss out.
+                        {t("live.dropWentFast")}
                       </p>
                       <NotifyForm
                         dropId={drop.id}
-                        subtitle="Be first in line for the next drop"
+                        subtitle={t("live.beFirstNext")}
                         bgClass="bg-forest/[0.04] border border-forest/10"
                       />
                     </div>
@@ -137,21 +131,21 @@ export function DesktopDropPage({ drop, remaining, nextDrop }: Props) {
                     onClick={() => setShowOrder(true)}
                     className="px-8 py-4 rounded-2xl bg-amber text-white font-semibold text-base flex items-center gap-2 btn-press"
                   >
-                    Order Now
+                    {t("hero.orderNow")}
                     <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
                       <path d="M3 8h10M9 4l4 4-4 4" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
                   </button>
                   <div className="flex flex-col gap-0.5">
-                    <span className="text-[10px] font-semibold text-forest/30 uppercase tracking-wider">CLOSES THURSDAY</span>
+                    <span className="text-[10px] font-semibold text-forest/30 uppercase tracking-wider">{t("desktop.closesThursday")}</span>
                     <CountdownTimer targetDate={drop.orders_close_at} label="" compact />
                   </div>
                 </div>
                 {/* Scarcity indicator (Goal-Gradient Effect) */}
                 <div className="flex flex-col gap-1.5 max-w-[280px]">
                   <div className="flex justify-between items-center">
-                    <span className="text-xs font-semibold text-forest/50">{orderedCount} of {drop.capacity} claimed</span>
-                    <span className="text-xs text-forest/30">{remaining} left</span>
+                    <span className="text-xs font-semibold text-forest/50">{t("hero.claimed", { count: orderedCount, capacity: drop.capacity })}</span>
+                    <span className="text-xs text-forest/30">{t("desktop.left", { count: remaining })}</span>
                   </div>
                   <div className="h-1 rounded-full bg-forest/6 w-full overflow-hidden">
                     <div
@@ -192,52 +186,52 @@ export function DesktopDropPage({ drop, remaining, nextDrop }: Props) {
         <div className={cx}>
           <div className="flex rounded-[28px] overflow-hidden min-h-[400px] bg-forest/[0.03] items-center justify-center">
             <div className="text-center max-w-lg px-8">
-              <p className="text-xs font-semibold text-amber uppercase tracking-wider mb-3">LIMITED BATCH</p>
+              <p className="text-xs font-semibold text-amber uppercase tracking-wider mb-3">{t("preDrop.limitedBatch")}</p>
               <h1 className="font-display font-black text-4xl text-forest mb-3">
-                Something sweet is coming
+                {t("preDrop.heading")}
               </h1>
               <p className="text-[15px] text-forest/45 leading-relaxed max-w-[380px] mx-auto mb-2">
-                Small-batch, handmade treats. Each drop sells out fast — be the first to know when orders open.
+                {t("preDrop.description")}
               </p>
               {drop?.status === "scheduled" && (
-                <CountdownTimer targetDate={drop.orders_open_at} label="OPENS IN" />
+                <CountdownTimer targetDate={drop.orders_open_at} label={t("preDrop.opensIn")} />
               )}
               <div className="mt-6 max-w-sm mx-auto">
-                <NotifyForm dropId={drop?.id} subtitle="Get notified before it's gone" />
+                <NotifyForm dropId={drop?.id} subtitle={t("preDrop.notifySubtitle")} />
               </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* Closed/Baking hero — warm baking journey (Peak-End Rule + Goal-Gradient) */}
+      {/* Closed/Baking hero */}
       {isClosed && drop && (() => {
         const soldOut = remaining === 0;
         const todayCST = utcToCST(new Date().toISOString()).date;
         const isPickupDay = todayCST >= drop.pickup_date;
         const pickupDay = formatDay(drop.pickup_date);
         const heading = drop.status === "baking"
-          ? "We\u2019re baking your treats right now"
+          ? t("desktop.closedBakingHeading")
           : drop.status === "ready" && isPickupDay
-          ? "Ready for pickup!"
+          ? t("closed.headingReadyPickup")
           : drop.status === "ready"
-          ? "Fresh out of the oven!"
+          ? t("closed.headingFreshOven")
           : drop.status === "completed"
-          ? "Drop complete!"
+          ? t("closed.headingComplete")
           : soldOut
-          ? "Sold out!"
-          : "Orders are closed";
+          ? t("closed.headingSoldOut")
+          : t("closed.headingClosed");
         const body = drop.status === "baking"
-          ? "Every batch handmade from scratch by Heidi. Your treats will be ready for pickup soon."
+          ? t("desktop.closedBakingBody")
           : drop.status === "ready" && isPickupDay
-          ? `Your treats are ready! Head to ${drop.pickup_location} to pick up your order.`
+          ? t("closed.readyPickup", { location: drop.pickup_location, pickupDay })
           : drop.status === "ready"
-          ? `Your treats are baked and beautiful! Pickup is ${pickupDay} at ${drop.pickup_location}. Almost there!`
+          ? t("closed.readyAlmost", { pickupDay, location: drop.pickup_location })
           : drop.status === "completed"
-          ? `All ${orderedCount} orders picked up. Thanks for being part of this drop!`
+          ? t("desktop.closedCompleteBody", { count: orderedCount })
           : soldOut
-          ? `All ${drop.capacity} spots claimed! We\u2019re getting fresh ingredients and baking everything by hand.`
-          : "We\u2019re getting ready to buy fresh ingredients and bake everything by hand.";
+          ? t("desktop.closedSoldOutBody", { capacity: drop.capacity })
+          : t("desktop.closedDefaultBody");
         return (
         <div className={cx}>
           <div className="flex rounded-[28px] overflow-hidden min-h-[420px] gap-4">
@@ -245,7 +239,7 @@ export function DesktopDropPage({ drop, remaining, nextDrop }: Props) {
             <div className="flex-[3] flex flex-col justify-center p-14 gap-6 bg-white rounded-[28px]">
               <div className={`inline-flex px-3 py-1 rounded-full self-start ${soldOut ? "bg-amber/10" : "bg-forest/6"}`}>
                 <span className={`text-xs font-semibold ${soldOut ? "text-amber" : "text-forest/50"}`}>
-                  {soldOut ? `${drop.capacity} of ${drop.capacity} claimed` : `${orderedCount} orders this drop`}
+                  {soldOut ? t("closed.capacityClaimed", { count: drop.capacity, capacity: drop.capacity }) : t("closed.ordersThisDrop", { count: orderedCount })}
                 </span>
               </div>
               <h1 className="font-display font-black text-[44px] text-forest leading-[1.08]">
@@ -255,7 +249,7 @@ export function DesktopDropPage({ drop, remaining, nextDrop }: Props) {
                 {body}
               </p>
             </div>
-            {/* Right — baking timeline (Goal-Gradient + Zeigarnik) */}
+            {/* Right — baking timeline */}
             <div className="flex-[2] flex flex-col justify-center p-10 bg-forest/[0.03] rounded-[28px]">
               <BakingTimeline drop={drop} orderedCount={orderedCount} />
             </div>
@@ -283,10 +277,10 @@ export function DesktopDropPage({ drop, remaining, nextDrop }: Props) {
           <div className="w-12 h-12 rounded-full overflow-hidden">
             <Image src="/images/munchis-icon.svg" alt="munchis" width={48} height={48} />
           </div>
-          <p className="text-[11px] font-semibold text-forest/30 uppercase tracking-wider">The hands behind every treat</p>
-          <p className="font-display font-black text-xl text-forest">Meet Heidi</p>
+          <p className="text-[11px] font-semibold text-forest/30 uppercase tracking-wider">{t("flavor.handsLabel")}</p>
+          <p className="font-display font-black text-xl text-forest">{t("flavor.meetHeidi")}</p>
           <p className="text-[13px] text-forest/45 max-w-[360px]">
-            Food engineer and pastry chef. Every munchis treat is her rebellion: handmade, small-batch, no shortcuts.
+            {t("flavor.meetHeidiRebellion")}
           </p>
         </div>
 

@@ -10,6 +10,7 @@ import { ORDER_STATUS_COLORS, ORDER_STATUS_LABELS } from "@/lib/orders/constants
 import { formatCents, getInitials } from "@/lib/format";
 import type { Drop, Order, DropStats } from "@/types/database";
 import { getGreeting } from "@/lib/greetings";
+import { PushPrompt } from "@/components/parrot/push-prompt";
 
 interface Props {
   drops: Drop[];
@@ -120,6 +121,11 @@ export function HomeTab({ drops, orders, dropStats, onEditDrop, onViewOrders, on
             </svg>
           </button>
         </div>
+      </div>
+
+      {/* Push notification prompt */}
+      <div className="mx-4 mb-3">
+        <PushPrompt />
       </div>
 
       {/* Current Drop Banner */}

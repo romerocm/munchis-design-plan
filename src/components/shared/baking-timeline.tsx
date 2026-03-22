@@ -1,6 +1,7 @@
 "use client";
 
 import type { Drop } from "@/types/database";
+import { useTranslation } from "@/lib/i18n/context";
 import { parseLocalDate, formatDay, formatDayOffset, utcToCST } from "@/lib/format";
 
 interface BakingTimelineProps {
@@ -16,7 +17,7 @@ interface TimelineStep {
   state: StepState;
 }
 
-function buildSteps(drop: Drop, orderedCount: number): TimelineStep[] {
+function buildSteps(drop: Drop, orderedCount: number, t: (key: any, params?: any) => string): TimelineStep[] {
   const now = new Date();
   const pickupDate = parseLocalDate(drop.pickup_date);
   const ingredientsDate = (() => { const d = parseLocalDate(drop.pickup_date); d.setDate(d.getDate() - 2); return d; })();
@@ -28,7 +29,6 @@ function buildSteps(drop: Drop, orderedCount: number): TimelineStep[] {
   const pickupDay = formatDay(drop.pickup_date);
 
   // Ingredients: done if baker toggled groceries_bought_at, or if we're past that phase.
-  // Falls back to date-based estimate for older drops without the field.
   const ingredientsDone =
     !!drop.groceries_bought_at
     || ["baking", "ready", "completed"].includes(drop.status)
@@ -42,33 +42,33 @@ function buildSteps(drop: Drop, orderedCount: number): TimelineStep[] {
 
   // Show actual groceries date when available
   const ingredientsDetail = drop.groceries_bought_at
-    ? `${formatDay(drop.groceries_bought_at)} · Butter, chocolate, eggs, flour`
-    : `${ingredientsDay} · Butter, chocolate, eggs, flour`;
+    ? `${formatDay(drop.groceries_bought_at)} · ${t("timeline.ingredientsDetail")}`
+    : `${ingredientsDay} · ${t("timeline.ingredientsDetail")}`;
 
   return [
     {
-      label: "Orders closed",
-      detail: `${closeDay} · ${orderedCount} orders locked in`,
+      label: t("timeline.ordersClosed"),
+      detail: `${closeDay} · ${t("timeline.ordersLockedIn", { count: orderedCount })}`,
       state: "done" as StepState,
     },
     {
-      label: "Fresh ingredients bought",
+      label: t("timeline.freshIngredients"),
       detail: ingredientsDetail,
       state: ingredientsDone ? "done" as StepState : "upcoming" as StepState,
     },
     {
-      label: bakingActive ? "Baking in progress" : bakingDone ? "Baking complete" : "Baking day",
-      detail: `${bakingDay} · Made fresh by hand`,
+      label: bakingActive ? t("timeline.bakingInProgress") : bakingDone ? t("timeline.bakingComplete") : t("timeline.bakingDay"),
+      detail: `${bakingDay} · ${t("timeline.madeByHand")}`,
       state: (bakingDone ? "done" : bakingActive ? "active" : "upcoming") as StepState,
     },
     {
       label: pickupActive
-        ? `Ready for pickup!`
+        ? t("timeline.readyForPickup")
         : pickupDone
-        ? "Pickup complete"
+        ? t("timeline.pickupComplete")
         : drop.status === "ready" && !isPickupDay
-        ? `Pickup ${pickupDay}`
-        : `Pickup at ${drop.pickup_location}`,
+        ? t("timeline.pickupOn", { day: pickupDay })
+        : t("timeline.pickupAt", { location: drop.pickup_location }),
       detail: `${pickupDay} · ${drop.pickup_time_start?.slice(0, 5)}–${drop.pickup_time_end?.slice(0, 5)}`,
       state: (pickupDone ? "done" : pickupActive ? "active" : drop.status === "ready" && !isPickupDay ? "waiting" : "upcoming") as StepState,
     },
@@ -82,7 +82,8 @@ const CheckIcon = () => (
 );
 
 export function BakingTimeline({ drop, orderedCount }: BakingTimelineProps) {
-  const steps = buildSteps(drop, orderedCount);
+  const { t } = useTranslation();
+  const steps = buildSteps(drop, orderedCount, t);
 
   return (
     <div className="flex flex-col justify-center gap-0">
@@ -129,10 +130,10 @@ export function BakingTimeline({ drop, orderedCount }: BakingTimelineProps) {
                   {step.label}
                 </span>
                 {step.state === "active" && (
-                  <span className="text-[11px] font-semibold text-amber bg-amber/12 px-2 py-0.5 rounded-full">NOW</span>
+                  <span className="text-[11px] font-semibold text-amber bg-amber/12 px-2 py-0.5 rounded-full">{t("timeline.now")}</span>
                 )}
                 {step.state === "waiting" && (
-                  <span className="text-[11px] font-semibold text-amber/60 bg-amber/8 px-2 py-0.5 rounded-full">SOON</span>
+                  <span className="text-[11px] font-semibold text-amber/60 bg-amber/8 px-2 py-0.5 rounded-full">{t("timeline.soon")}</span>
                 )}
               </div>
               <span className={`text-[13px] ${step.state === "upcoming" ? "text-forest/25" : step.state === "waiting" ? "text-forest/35" : "text-forest/40"}`}>

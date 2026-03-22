@@ -31,5 +31,23 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
+  // Push notification (fire-and-forget)
+  if (data) {
+    const { data: drop } = await supabase
+      .from("drops")
+      .select("flavor_name")
+      .eq("id", data.drop_id)
+      .single();
+
+    import("@/lib/push/send").then(({ sendPushToAll }) =>
+      sendPushToAll({
+        title: "Payment confirmed!",
+        body: `${data.customer_name} paid for ${data.quantity}x ${drop?.flavor_name || "treats"}`,
+        url: "/parrot/dashboard?tab=orders",
+        tag: "payment-confirmed",
+      })
+    ).catch((err) => console.error("Push notification failed:", err));
+  }
+
   return NextResponse.json({ order: data });
 }

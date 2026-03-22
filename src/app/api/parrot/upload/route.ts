@@ -18,11 +18,11 @@ export async function POST(req: NextRequest) {
   }
 
   // File validation
-  const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"];
+  const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/heic", "image/heif"];
   const MAX_SIZE = 5 * 1024 * 1024; // 5MB
 
   if (!ALLOWED_TYPES.includes(file.type)) {
-    return NextResponse.json({ error: "Only JPEG, PNG, and WebP images allowed" }, { status: 400 });
+    return NextResponse.json({ error: "Only JPEG, PNG, WebP, and HEIC images allowed" }, { status: 400 });
   }
   if (file.size > MAX_SIZE) {
     return NextResponse.json({ error: "File too large (max 5MB)" }, { status: 400 });
@@ -31,8 +31,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Type must be 'hero' or 'flavor'" }, { status: 400 });
   }
 
-  const ext = file.name.split(".").pop() || "jpg";
-  const path = `${dropId}/${type}.${ext}`;
+  // Use fixed path (no extension) so upsert always replaces the same file
+  const path = `${dropId}/${type}`;
 
   // Upload to storage
   const { error: uploadError } = await supabase.storage
@@ -48,9 +48,10 @@ export async function POST(req: NextRequest) {
     .from("drop-images")
     .getPublicUrl(path);
 
-  const imageUrl = urlData.publicUrl;
+  // Append cache-buster so browsers and CDNs fetch the new version
+  const imageUrl = `${urlData.publicUrl}?v=${Date.now()}`;
 
-  // Update drop with image URL
+  // Update drop with cache-busted URL so storefront pages also show the new image
   const column = type === "hero" ? "hero_image_url" : "flavor_image_url";
   await supabase
     .from("drops")

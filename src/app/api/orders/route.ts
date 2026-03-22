@@ -125,6 +125,16 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  // Fire-and-forget: push notification to baker dashboard
+  import("@/lib/push/send").then(({ sendPushToAll }) =>
+    sendPushToAll({
+      title: `New order! ${qty}x ${drop.flavor_name}`,
+      body: `${nameClean} just ordered · ${formatCentsToDollars(totalCents)}`,
+      url: "/parrot/dashboard?tab=orders",
+      tag: "new-order",
+    })
+  ).catch((err) => console.error("Push notification failed:", err));
+
   // Fire-and-forget: send order received WhatsApp notification
   sendWhatsApp({
     to: whatsappClean,

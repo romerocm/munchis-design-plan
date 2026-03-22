@@ -2,6 +2,8 @@
 
 import { useRef, useEffect, useState } from "react";
 import Image from "next/image";
+import { useTranslation } from "@/lib/i18n/context";
+import type { DictionaryKeys } from "@/lib/i18n/dictionaries/en/index";
 
 /**
  * Marquee strip — full viewport width, seamless infinite scroll.
@@ -15,17 +17,17 @@ import Image from "next/image";
 const LAVENDER = "#D7B4D5";
 const GAP = 32; // px between items, matches Paper
 
-const items = [
-  { icon: "star", label: "Handmade from scratch" },
-  { icon: "clock", label: "One flavor per drop" },
-  { icon: "home", label: "Baked fresh every Saturday" },
-  { icon: "pin", label: "San Salvador, El Salvador" },
-  { icon: "person", label: "Food engineer & pastry chef" },
-  { icon: "hugeicon:cookie-solid", label: "Made with real ingredients" },
-  { icon: "hugeicon:oven-solid", label: "Fresh out of the oven" },
-  { icon: "hugeicon:sparkles-solid", label: "Small-batch, no shortcuts" },
-  { icon: "hugeicon:leaf-01-solid", label: "No preservatives" },
-  { icon: "hugeicon:heart-check-solid", label: "Made with love" },
+const itemDefs: { icon: string; key: DictionaryKeys }[] = [
+  { icon: "star", key: "marquee.handmade" },
+  { icon: "clock", key: "marquee.oneFlavor" },
+  { icon: "home", key: "marquee.bakedSaturday" },
+  { icon: "pin", key: "marquee.location" },
+  { icon: "person", key: "marquee.foodEngineer" },
+  { icon: "hugeicon:cookie-solid", key: "marquee.realIngredients" },
+  { icon: "hugeicon:oven-solid", key: "marquee.freshOven" },
+  { icon: "hugeicon:sparkles-solid", key: "marquee.smallBatch" },
+  { icon: "hugeicon:leaf-01-solid", key: "marquee.noPreservatives" },
+  { icon: "hugeicon:heart-check-solid", key: "marquee.madeWithLove" },
 ];
 
 function InlineSvgIcon({ type }: { type: string }) {
@@ -85,7 +87,7 @@ function MarqueeIcon({ type }: { type: string }) {
   return <InlineSvgIcon type={type} />;
 }
 
-function MarqueeContent() {
+function MarqueeContent({ items }: { items: { icon: string; label: string }[] }) {
   return (
     <>
       {items.map((item, i) => (
@@ -104,14 +106,17 @@ function MarqueeContent() {
 }
 
 export function MarqueeStrip() {
+  const { t } = useTranslation();
   const contentRef = useRef<HTMLDivElement>(null);
   const [contentWidth, setContentWidth] = useState(0);
+
+  const items = itemDefs.map((d) => ({ icon: d.icon, label: t(d.key) }));
 
   useEffect(() => {
     if (contentRef.current) {
       setContentWidth(contentRef.current.scrollWidth);
     }
-  }, []);
+  }, [items]);
 
   // Speed: ~50px/sec for smooth, relaxed feel
   const duration = contentWidth > 0 ? contentWidth / 50 : 30;
@@ -127,14 +132,14 @@ export function MarqueeStrip() {
       >
         {/* First copy — measured for width */}
         <div ref={contentRef} className="flex shrink-0" style={{ gap: `${GAP}px`, paddingRight: `${GAP}px` }}>
-          <MarqueeContent />
+          <MarqueeContent items={items} />
         </div>
         {/* Clones — enough to always fill the viewport */}
         <div className="flex shrink-0" style={{ gap: `${GAP}px`, paddingRight: `${GAP}px` }}>
-          <MarqueeContent />
+          <MarqueeContent items={items} />
         </div>
         <div className="flex shrink-0" style={{ gap: `${GAP}px`, paddingRight: `${GAP}px` }}>
-          <MarqueeContent />
+          <MarqueeContent items={items} />
         </div>
       </div>
 

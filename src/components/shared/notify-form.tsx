@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslation } from "@/lib/i18n/context";
 import { PhoneInput } from "./phone-input";
 
 interface NotifyFormProps {
@@ -11,6 +12,7 @@ interface NotifyFormProps {
 }
 
 export function NotifyForm({ dropId, subtitle, bgClass }: NotifyFormProps) {
+  const { t } = useTranslation();
   const [whatsapp, setWhatsapp] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "done" | "error">(
     "idle"
@@ -41,10 +43,10 @@ export function NotifyForm({ dropId, subtitle, bgClass }: NotifyFormProps) {
     return (
       <div className="text-center py-2">
         <p className="text-sm font-semibold text-green-accent">
-          You&apos;re on the list!
+          {t("notify.onTheList")}
         </p>
         <p className="text-xs text-forest/35 mt-1">
-          We&apos;ll WhatsApp you when the drop goes live
+          {t("notify.wellWhatsApp")}
         </p>
       </div>
     );
@@ -67,12 +69,12 @@ export function NotifyForm({ dropId, subtitle, bgClass }: NotifyFormProps) {
           disabled={status === "loading"}
           className="px-5 py-3.5 rounded-xl bg-forest text-white text-sm font-semibold flex-shrink-0 self-start"
         >
-          {status === "loading" ? "..." : "Notify me"}
+          {status === "loading" ? "..." : t("notify.notifyMe")}
         </button>
       </div>
       {status === "error" && (
         <p className="text-xs text-red-text mt-2 text-center">
-          Something went wrong. Try again.
+          {t("notify.error")}
         </p>
       )}
     </div>
