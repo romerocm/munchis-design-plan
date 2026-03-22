@@ -40,7 +40,7 @@ export function NextDropCard({ nextDrop, currentDropId, className = "" }: NextDr
         We pick one flavor per drop. Tell us what you&apos;d love to see next.
       </p>
       <a
-        href="https://wa.me/50370001234?text=Hey%20munchis!%20I%27d%20love%20to%20see%20this%20flavor%20next%3A%20"
+        href="https://wa.me/50361569747?text=Hey%20munchis!%20I%27d%20love%20to%20see%20this%20flavor%20next%3A%20"
         target="_blank"
         rel="noopener noreferrer"
         className="mt-2 px-6 py-3 rounded-xl bg-forest text-white text-sm font-semibold btn-press inline-flex items-center gap-2"
