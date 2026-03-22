@@ -48,9 +48,10 @@ export async function POST(req: NextRequest) {
     .from("drop-images")
     .getPublicUrl(path);
 
-  const imageUrl = urlData.publicUrl;
+  // Append cache-buster so browsers and CDNs fetch the new version
+  const imageUrl = `${urlData.publicUrl}?v=${Date.now()}`;
 
-  // Update drop with image URL
+  // Update drop with cache-busted URL so storefront pages also show the new image
   const column = type === "hero" ? "hero_image_url" : "flavor_image_url";
   await supabase
     .from("drops")

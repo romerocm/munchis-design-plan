@@ -75,11 +75,9 @@ export function DropManager({ drop: initialDrop, recipes = [], onClose }: Props)
 
       if (res.ok) {
         const { url } = await res.json();
-        // Append cache-buster so browser fetches the new image
-        const freshUrl = `${url}?t=${Date.now()}`;
         setDrop((d) => ({
           ...d,
-          [type === "hero" ? "hero_image_url" : "flavor_image_url"]: freshUrl,
+          [type === "hero" ? "hero_image_url" : "flavor_image_url"]: url,
         }));
         setError(null);
       } else {
