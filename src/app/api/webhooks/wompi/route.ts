@@ -73,8 +73,8 @@ export async function POST(req: NextRequest) {
           .single();
 
         if (drop) {
-          // Push notification to baker dashboard
-          sendPushToAll({
+          // Await push so the serverless function stays alive until it completes
+          await sendPushToAll({
             title: "Payment confirmed!",
             body: `${order.customer_name} paid for ${order.quantity}x ${drop.flavor_name}`,
             url: "/parrot/dashboard?tab=orders",
