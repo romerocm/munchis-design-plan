@@ -4,6 +4,7 @@ import { createPaymentLink } from "@/lib/wompi/client";
 import { MAX_ORDER_QUANTITY, PAYMENT_WINDOW_MS } from "@/lib/orders/constants";
 import { sendWhatsApp } from "@/lib/twilio/client";
 import { buildOrderReceivedVars, formatCentsToDollars } from "@/lib/twilio/templates";
+import { sendPushToAll } from "@/lib/push/send";
 
 export async function POST(req: NextRequest) {
   const supabase = createServerClient();
@@ -126,14 +127,12 @@ export async function POST(req: NextRequest) {
   }
 
   // Fire-and-forget: push notification to baker dashboard
-  import("@/lib/push/send").then(({ sendPushToAll }) =>
-    sendPushToAll({
-      title: `New order! ${qty}x ${drop.flavor_name}`,
-      body: `${nameClean} just ordered · ${formatCentsToDollars(totalCents)}`,
-      url: "/parrot/dashboard?tab=orders",
-      tag: "new-order",
-    })
-  ).catch((err) => console.error("Push notification failed:", err));
+  sendPushToAll({
+    title: `New order! ${qty}x ${drop.flavor_name}`,
+    body: `${nameClean} just ordered · ${formatCentsToDollars(totalCents)}`,
+    url: "/parrot/dashboard?tab=orders",
+    tag: "new-order",
+  }).catch((err) => console.error("Push notification failed:", err));
 
   // Fire-and-forget: send order received WhatsApp notification
   sendWhatsApp({

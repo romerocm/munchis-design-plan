@@ -10,21 +10,21 @@ interface PushPayload {
 /**
  * Send a push notification to all registered subscriptions (Heidi's devices).
  * Silently cleans up expired/unsubscribed endpoints (410 Gone).
- * Uses dynamic require for web-push (CommonJS module) to avoid ESM issues.
  */
 export async function sendPushToAll(payload: PushPayload) {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const webpush = require("web-push");
+  const publicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+  const privateKey = process.env.VAPID_PRIVATE_KEY;
 
-  const VAPID_PUBLIC = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
-  const VAPID_PRIVATE = process.env.VAPID_PRIVATE_KEY;
-
-  if (!VAPID_PUBLIC || !VAPID_PRIVATE) {
+  if (!publicKey || !privateKey) {
     console.error("Push: VAPID keys not configured");
     return;
   }
 
-  webpush.setVapidDetails("mailto:hello@eatmunchis.com", VAPID_PUBLIC, VAPID_PRIVATE);
+  // web-push is a Node-only CJS module. Dynamic require avoids
+  // Turbopack/Vercel trying to bundle it at build time.
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const webpush = globalThis.require("web-push");
+  webpush.setVapidDetails("mailto:hello@eatmunchis.com", publicKey, privateKey);
 
   const supabase = createServerClient();
   const { data: subs, error: dbError } = await supabase.from("push_subscriptions").select("*");
@@ -46,7 +46,7 @@ export async function sendPushToAll(payload: PushPayload) {
             endpoint: sub.endpoint,
             keys: { p256dh: sub.keys_p256dh, auth: sub.keys_auth },
           },
-          message
+          message,
         );
       } catch (err: unknown) {
         const statusCode = (err as { statusCode?: number }).statusCode;
@@ -56,6 +56,6 @@ export async function sendPushToAll(payload: PushPayload) {
           console.error("Push send failed:", (err as Error).message || err);
         }
       }
-    })
+    }),
   );
 }
