@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { getToken as getAuthToken } from "@/lib/auth/get-token";
 import { formatDropNumber } from "@/lib/drops/constants";
 import { useRealtimeRefresh } from "@/hooks/use-realtime-refresh";
+import { useResumeRefresh } from "@/hooks/use-resume-refresh";
 import { InputModal } from "@/components/shared/input-modal";
 import { TabBar, type Tab } from "./tabs/tab-bar";
 import { HomeTab } from "./tabs/home-tab";
@@ -44,6 +45,7 @@ export function DashboardClient({ drops, orders, recipes, dropStats }: Props) {
   const router = useRouter();
   const searchParams = useSearchParams();
   useRealtimeRefresh(DASHBOARD_SUBS);
+  useResumeRefresh();
   const [, startTransition] = useTransition();
   const [showNewRecipe, setShowNewRecipe] = useState(false);
 
