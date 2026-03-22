@@ -20,10 +20,9 @@ export async function sendPushToAll(payload: PushPayload) {
     return;
   }
 
-  // web-push is a Node-only CJS module. Dynamic require avoids
-  // Turbopack/Vercel trying to bundle it at build time.
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const webpush = globalThis.require("web-push");
+  // web-push is a Node-only CJS module. serverExternalPackages in next.config.ts
+  // tells Turbopack to leave it unbundled. Dynamic import ensures it loads at runtime.
+  const webpush = await import("web-push");
   webpush.setVapidDetails("mailto:hello@eatmunchis.com", publicKey, privateKey);
 
   const supabase = createServerClient();
