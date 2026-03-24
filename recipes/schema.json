@@ -1,0 +1,134 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Munchis Recipe",
+  "description": "Recipe format for seeding the munchis database",
+  "type": "object",
+  "required": ["slug", "name", "base_yield", "yield_unit", "ingredients", "steps"],
+  "properties": {
+    "slug": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+      "description": "Stable identifier for upsert. Lowercase, hyphen-separated."
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Display name of the recipe"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["idea", "draft", "testing", "active", "archived"],
+      "default": "draft"
+    },
+    "emoji": {
+      "type": "string",
+      "description": "Single emoji for recipe card display"
+    },
+    "description": {
+      "type": "string",
+      "description": "Short description of the recipe"
+    },
+    "category": {
+      "type": "string",
+      "description": "Recipe category (e.g., viennoiserie, cookies, bread, cake, pastry)"
+    },
+    "base_yield": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Number of units this recipe produces"
+    },
+    "yield_unit": {
+      "type": "string",
+      "description": "What the yield measures (units, batch, g, ml, etc.)"
+    },
+    "oven_temp_c": {
+      "type": "integer",
+      "minimum": 50,
+      "maximum": 350,
+      "description": "Oven temperature in Celsius"
+    },
+    "oven_mode": {
+      "type": "string",
+      "enum": ["conventional", "convection", "steam"],
+      "default": "conventional"
+    },
+    "prep_time_min": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Active preparation time in minutes"
+    },
+    "bake_time_min": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Baking time in minutes"
+    },
+    "rest_time_min": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Resting, chilling, or proofing time in minutes"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Baker's notes, tips, or variations"
+    },
+    "ingredients": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["name", "quantity", "unit"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "quantity": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "unit": {
+            "type": "string",
+            "description": "Measurement unit (g, kg, ml, l, tsp, tbsp, cup, oz, lb, unit, pinch)"
+          },
+          "category": {
+            "type": "string",
+            "description": "Ingredient group for shopping list (dry, wet, dairy, produce, pantry, specialty)"
+          },
+          "notes": {
+            "type": "string",
+            "description": "Notes about this ingredient (e.g., temperature, brand, substitutions)"
+          }
+        }
+      }
+    },
+    "steps": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["title"],
+        "properties": {
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Short title for this step"
+          },
+          "description": {
+            "type": "string",
+            "description": "Detailed instructions for this step"
+          },
+          "duration_min": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Estimated duration in minutes"
+          },
+          "is_timer_step": {
+            "type": "boolean",
+            "default": false,
+            "description": "If true, the app shows a countdown timer for this step"
+          }
+        }
+      }
+    }
+  }
+}

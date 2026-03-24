@@ -16,7 +16,9 @@
     "test:e2e": "playwright test --config e2e/playwright.config.ts",
     "test:e2e:ui": "playwright test --config e2e/playwright.config.ts --ui",
     "test:e2e:headed": "playwright test --config e2e/playwright.config.ts --headed",
-    "test:all": "vitest run && playwright test --config e2e/playwright.config.ts"
+    "test:all": "vitest run && playwright test --config e2e/playwright.config.ts",
+    "seed:recipes": "npx tsx scripts/seed-recipes.ts",
+    "seed:recipes:dry": "npx tsx scripts/seed-recipes.ts --dry-run"
   },
   "dependencies": {
     "@hugeicons/core-free-icons": "^4.0.0",

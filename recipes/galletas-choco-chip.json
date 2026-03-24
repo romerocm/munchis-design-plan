@@ -1,0 +1,82 @@
+{
+  "slug": "galletas-choco-chip",
+  "name": "Galletas Chocolate Chip",
+  "status": "active",
+  "emoji": "🍪",
+  "description": "Crujientes por fuera, suaves por dentro. Chocolate oscuro en cada mordida.",
+  "category": "cookies",
+  "base_yield": 24,
+  "yield_unit": "units",
+  "oven_temp_c": 180,
+  "oven_mode": "conventional",
+  "prep_time_min": 20,
+  "bake_time_min": 12,
+  "rest_time_min": 60,
+  "notes": "La masa se puede refrigerar hasta 72 horas. Mientras mas descansa, mejor sabor. Si hace mucho calor, refrigerar entre tandas.",
+  "ingredients": [
+    { "name": "Harina todo uso", "quantity": 300, "unit": "g", "category": "dry" },
+    { "name": "Bicarbonato de sodio", "quantity": 5, "unit": "g", "category": "dry" },
+    { "name": "Sal fina", "quantity": 4, "unit": "g", "category": "dry" },
+    { "name": "Mantequilla sin sal", "quantity": 225, "unit": "g", "category": "dairy", "notes": "A temperatura ambiente" },
+    { "name": "Azucar morena", "quantity": 150, "unit": "g", "category": "dry" },
+    { "name": "Azucar blanca", "quantity": 100, "unit": "g", "category": "dry" },
+    { "name": "Huevos", "quantity": 2, "unit": "unit", "category": "dairy" },
+    { "name": "Extracto de vainilla", "quantity": 1, "unit": "tsp", "category": "pantry" },
+    { "name": "Chocolate oscuro 70%", "quantity": 200, "unit": "g", "category": "specialty", "notes": "Picado en trozos irregulares" }
+  ],
+  "steps": [
+    {
+      "title": "Mezclar secos",
+      "description": "En un bowl mediano, combinar harina, bicarbonato y sal. Reservar.",
+      "duration_min": 3
+    },
+    {
+      "title": "Cremar mantequilla",
+      "description": "Batir mantequilla con ambos azucares hasta que este cremosa y ligera, aprox 3 minutos con batidora.",
+      "duration_min": 5
+    },
+    {
+      "title": "Agregar huevos",
+      "description": "Agregar huevos uno a uno, batiendo bien entre cada uno. Agregar vainilla.",
+      "duration_min": 2
+    },
+    {
+      "title": "Incorporar secos",
+      "description": "Agregar la mezcla de harina en dos adiciones, mezclando con espatula hasta incorporar. No sobre-mezclar.",
+      "duration_min": 2
+    },
+    {
+      "title": "Agregar chocolate",
+      "description": "Incorporar los trozos de chocolate con espatula.",
+      "duration_min": 1
+    },
+    {
+      "title": "Refrigerar masa",
+      "description": "Cubrir el bowl con plastico y refrigerar minimo 1 hora. Ideal 24-72 horas.",
+      "duration_min": 60,
+      "is_timer_step": true
+    },
+    {
+      "title": "Precalentar horno",
+      "description": "Precalentar a 180C. Forrar bandejas con papel pergamino.",
+      "duration_min": 10
+    },
+    {
+      "title": "Porcionar",
+      "description": "Hacer bolitas de 2 cucharadas (aprox 45g cada una). Separar 5cm entre cada galleta.",
+      "duration_min": 5
+    },
+    {
+      "title": "Hornear",
+      "description": "Hornear 10-12 minutos. Las orillas deben estar doradas pero el centro se ve ligeramente crudo. Se terminan de cocinar fuera del horno.",
+      "duration_min": 12,
+      "is_timer_step": true
+    },
+    {
+      "title": "Enfriar",
+      "description": "Dejar en la bandeja 5 minutos, luego pasar a rejilla. Se firman al enfriarse.",
+      "duration_min": 5,
+      "is_timer_step": true
+    }
+  ]
+}

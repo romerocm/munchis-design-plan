@@ -1,0 +1,106 @@
+{
+  "slug": "croissant-clasico",
+  "name": "Croissant Clasico",
+  "status": "active",
+  "emoji": "🥐",
+  "description": "Hojaldrado, mantequilloso, crujiente por fuera y suave por dentro. 27 capas de laminacion.",
+  "category": "viennoiserie",
+  "base_yield": 12,
+  "yield_unit": "units",
+  "oven_temp_c": 200,
+  "oven_mode": "convection",
+  "prep_time_min": 45,
+  "bake_time_min": 18,
+  "rest_time_min": 720,
+  "notes": "Proceso de 2 dias. Dia 1: detrempe + beurrage + primer pliegue. Dia 2: laminacion + formado + fermentacion + horneado. En San Salvador con calor, extender reposos en frio 15 min extra.",
+  "ingredients": [
+    { "name": "Harina de fuerza", "quantity": 500, "unit": "g", "category": "dry", "notes": "W280+ si es posible" },
+    { "name": "Azucar", "quantity": 50, "unit": "g", "category": "dry" },
+    { "name": "Sal", "quantity": 10, "unit": "g", "category": "dry" },
+    { "name": "Levadura seca", "quantity": 7, "unit": "g", "category": "dry", "notes": "O 21g de levadura fresca" },
+    { "name": "Leche entera fria", "quantity": 270, "unit": "ml", "category": "dairy", "notes": "Directo del refrigerador" },
+    { "name": "Mantequilla para detrempe", "quantity": 30, "unit": "g", "category": "dairy", "notes": "A temperatura ambiente" },
+    { "name": "Mantequilla para laminado 82% MG", "quantity": 280, "unit": "g", "category": "dairy", "notes": "Fria. Tipo Anchor o similar con alto contenido graso" },
+    { "name": "Huevo", "quantity": 1, "unit": "unit", "category": "dairy", "notes": "Para dorure (barniz)" },
+    { "name": "Crema", "quantity": 15, "unit": "ml", "category": "dairy", "notes": "Para dorure" }
+  ],
+  "steps": [
+    {
+      "title": "Hacer la detrempe",
+      "description": "Mezclar harina, azucar, sal y levadura. Agregar leche fria y mantequilla suave. Amasar 8-10 min hasta obtener una masa lisa. No desarrollar gluten en exceso.",
+      "duration_min": 15
+    },
+    {
+      "title": "Refrigerar detrempe",
+      "description": "Formar un rectangulo de 20x30cm, envolver en plastico. Refrigerar minimo 8 horas o toda la noche.",
+      "duration_min": 480,
+      "is_timer_step": true
+    },
+    {
+      "title": "Preparar beurrage",
+      "description": "Golpear la mantequilla fria con el rodillo entre dos plasticos hasta formar un cuadrado de 15x15cm. Debe ser flexible pero frio. Refrigerar hasta usar.",
+      "duration_min": 5
+    },
+    {
+      "title": "Primer pliegue sencillo",
+      "description": "Estirar la detrempe a 30x30cm. Colocar el beurrage en el centro en forma de diamante. Cerrar las 4 esquinas. Estirar a 20x60cm. Doblar en tercios (pliegue sencillo). Marcar con 1 huellita.",
+      "duration_min": 10
+    },
+    {
+      "title": "Reposo en frio",
+      "description": "Envolver y refrigerar 30 min. En clima caluroso de SV, dar 45 min.",
+      "duration_min": 30,
+      "is_timer_step": true
+    },
+    {
+      "title": "Segundo pliegue sencillo",
+      "description": "Estirar nuevamente a 20x60cm. Pliegue sencillo. Marcar con 2 huellitas.",
+      "duration_min": 8
+    },
+    {
+      "title": "Reposo en frio",
+      "description": "Envolver y refrigerar 30 min.",
+      "duration_min": 30,
+      "is_timer_step": true
+    },
+    {
+      "title": "Tercer pliegue sencillo",
+      "description": "Estirar y hacer el ultimo pliegue sencillo. Marcar con 3 huellitas. Total: 27 capas.",
+      "duration_min": 8
+    },
+    {
+      "title": "Reposo final en frio",
+      "description": "Refrigerar minimo 1 hora antes de cortar. Ideal 2 horas.",
+      "duration_min": 60,
+      "is_timer_step": true
+    },
+    {
+      "title": "Estirar y cortar",
+      "description": "Estirar a un rectangulo de 20x60cm, 4mm de grosor. Cortar triangulos isoceles de base 10cm. Hacer un corte de 1cm en la base de cada triangulo.",
+      "duration_min": 10
+    },
+    {
+      "title": "Formar croissants",
+      "description": "Estirar cada triangulo suavemente. Enrollar desde la base hacia la punta, con tension suave. Curvar las puntas hacia adentro. Colocar en bandeja con punta abajo.",
+      "duration_min": 15
+    },
+    {
+      "title": "Fermentacion final",
+      "description": "Cubrir con plastico sin tocar. Dejar a temperatura ambiente (24-26C ideal) hasta que dupliquen de tamano y se sientan ligeros al mover la bandeja. Aprox 90 min.",
+      "duration_min": 90,
+      "is_timer_step": true
+    },
+    {
+      "title": "Dorure y horneado",
+      "description": "Batir huevo con crema. Barnizar con brocha suave, sin presionar la masa. Hornear a 200C conveccion por 8 min, luego bajar a 180C por 10 min mas hasta dorados.",
+      "duration_min": 18,
+      "is_timer_step": true
+    },
+    {
+      "title": "Enfriamiento",
+      "description": "Dejar en rejilla minimo 15 min. Los croissants terminan de cocinarse con el calor residual. No cortar antes de este tiempo.",
+      "duration_min": 15,
+      "is_timer_step": true
+    }
+  ]
+}
