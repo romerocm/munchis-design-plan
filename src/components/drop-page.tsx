@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { useTranslation } from "@/lib/i18n/context";
+import { markOwnOrder } from "@/lib/social-proof/own-order";
 import { CountdownTimer } from "./shared/countdown-timer";
 import { NotifyForm } from "./shared/notify-form";
 import { NextDropCard } from "./shared/next-drop-card";
@@ -701,6 +702,7 @@ export function DropPage({ drop, remaining, nextDrop }: DropPageProps) {
           remaining={remaining}
           onClose={() => setShowOrder(false)}
           onOrderComplete={(result) => {
+            markOwnOrder(result.order_id);
             setShowOrder(false);
             router.push(`/order/${result.order_id}`);
           }}
