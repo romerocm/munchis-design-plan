@@ -60,7 +60,11 @@ async function DropContent() {
   const { drop, remaining, nextDrop } = await getActiveDrop();
   return (
     <>
-      <StorefrontRealtime dropId={drop?.id} />
+      <StorefrontRealtime
+        dropId={drop?.id}
+        flavorName={drop?.flavor_name ?? ""}
+        remaining={remaining}
+      />
       {/* Mobile: <1024px */}
       <div className="lg:hidden">
         <DropPage drop={drop} remaining={remaining} nextDrop={nextDrop} />
