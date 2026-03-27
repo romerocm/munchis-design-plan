@@ -45,6 +45,10 @@ export async function POST(req: NextRequest) {
       status: "draft",
       base_yield: body.base_yield || 1,
       yield_unit: body.yield_unit || "batch",
+      oven_temp_c: body.oven_temp_c || null,
+      oven_mode: body.oven_mode || "conventional",
+      rest_time_min: body.rest_time_min || null,
+      category: body.category || null,
     })
     .select()
     .single();

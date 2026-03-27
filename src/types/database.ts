@@ -28,8 +28,11 @@ export interface Drop {
   updated_at: string;
 }
 
+export type OvenMode = "conventional" | "convection" | "steam";
+
 export interface Recipe {
   id: string;
+  slug: string | null;
   status: RecipeStatus;
   name: string;
   description: string | null;
@@ -39,6 +42,10 @@ export interface Recipe {
   yield_unit: string;
   prep_time_min: number | null;
   bake_time_min: number | null;
+  rest_time_min: number | null;
+  oven_temp_c: number | null;
+  oven_mode: OvenMode;
+  category: string | null;
   notes: string | null;
   created_at: string;
   updated_at: string;

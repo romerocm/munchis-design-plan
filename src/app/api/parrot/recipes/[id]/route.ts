@@ -45,7 +45,8 @@ export async function PATCH(req: NextRequest, { params }: Params) {
 
   const ALLOWED_FIELDS = [
     "name", "description", "emoji", "image_url", "base_yield", "yield_unit",
-    "prep_time_min", "bake_time_min", "notes", "status",
+    "prep_time_min", "bake_time_min", "rest_time_min", "oven_temp_c", "oven_mode",
+    "category", "notes", "status",
   ];
 
   // Validate status transition if status is being changed
